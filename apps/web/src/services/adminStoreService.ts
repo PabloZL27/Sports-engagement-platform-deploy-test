@@ -1,9 +1,11 @@
 import type { AdminProduct } from "../types";
 
-// Local: http://localhost:4013
-// Gateway: http://localhost:8081/admin-store
 const ADMIN_STORE_URL =
-  import.meta.env.VITE_ADMIN_STORE_URL || "http://localhost:4013";
+  import.meta.env.VITE_ADMIN_STORE_URL;
+
+if (!ADMIN_STORE_URL) {
+  throw new Error("VITE_ADMIN_STORE_URL is not configured");
+}
 
 async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${ADMIN_STORE_URL}${path}`, options);

@@ -1,7 +1,6 @@
 require("dotenv").config();
 
 const express = require("express");
-const { Pool } = require("pg");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
@@ -11,6 +10,10 @@ const PORT = process.env.PORT || 4005
 
 app.get("/", async (req, res) => {
     res.send('Hello from the store');
+});
+
+app.get("/health", (_req, res) => {
+  res.json({ ok: true, service: "store-service" });
 });
 
 app.post("/create_checkout", async (req, res) => {

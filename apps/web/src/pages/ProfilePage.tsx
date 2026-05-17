@@ -8,6 +8,9 @@ import Badges from "../components/Profile/Badges";
 import "../styles/profile.css";
 import AddressModal from "../components/Profile/AddressModal";
 import { supabase } from "../supabaseClient";
+import { Post } from "../types/community";
+import UserPosts from "../components/Profile/UserPosts";
+import { incrementPostUpvote } from "../services/communityService";
 
 import {
   getMyAddresses,
@@ -21,6 +24,11 @@ import {
   type UpdateProfilePayload,
   type UserBadge,
 } from "../services/profile";
+import { getUserPosts } from "../services/communityService";
+import { ModalComp } from "../components/general/modal";
+import PostDetail from "../components/community/postDetail";
+import RepliesList from "../components/community/repliesList";
+import NewReply from "../components/community/newReply";
 
 
 function ProfilePage() {
@@ -37,6 +45,13 @@ function ProfilePage() {
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [addressesError, setAddressesError] = useState<string | null>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [upvotedPosts, setUpvotedPosts] = useState<Set<number>>(new Set());
+  const [open, setIsOpen] = useState<boolean>(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const fetchProfile = async () => {
     try {
@@ -235,11 +250,74 @@ function ProfilePage() {
     setProfile(updatedProfile);
   };
 
+  const loadUserPosts = async () => {
+    try {
+      setLoadingPosts(true);
+      const data = await getUserPosts();
+      setUserPosts(data);
+    } catch(error) {
+      console.error("Error loading badges:", error);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+
+  const handleLikeClick = async (
+      postId: number
+    ) => {
+        // prevent double-like client-side
+      if (!session?.user.id) {
+        setIsOpen(true);
+        return;
+      }
+      if (upvotedPosts.has(postId)) {
+        // already liked by this user on client
+        return;
+      }
+  
+      try {
+        const updatedUpvotes = await incrementPostUpvote(postId);
+  
+        setUserPosts((currentPosts) =>
+          currentPosts.map((post) =>
+            post.post_id === postId
+              ? { ...post, upvotes_count: updatedUpvotes }
+              : post
+          )
+        );
+  
+        // persist client-side that this user has upvoted this post
+        setUpvotedPosts((prev) => {
+          const next = new Set(prev);
+          next.add(postId);
+          try {
+            const userKey = session?.user?.id ? `upvoted_${session.user.id}` : "upvoted_guest";
+            localStorage.setItem(userKey, JSON.stringify(Array.from(next)));
+          } catch (e) {
+            // ignore
+          }
+          return next;
+        });
+      } catch (err) {
+        console.error("Error incrementing post upvote:", err);
+      }
+  };
+
+  const handleTogglePostDetails = async (postId: number) => {
+      const isExpanding = expandedPostId !== postId;
+      setExpandedPostId(isExpanding ? postId : null);
+  
+      if (!isExpanding) return;
+    };
+  
+
   useEffect(() => {
     if (session) {
       fetchProfile();
       loadAddresses();
       loadBadges();
+      loadUserPosts();
     } else {
       setLoading(false);
     }
@@ -267,55 +345,84 @@ function ProfilePage() {
   }
 
   return (
-    <div className="profile-page">
-      <main className="profile-container">
-        <Navbar />
+    <>
+      <div className="profile-page">
+        <main className="profile-container">
+          <Navbar />
 
-        <section className="profile-header">
-          <h1 className="profile-title">MY PROFILE</h1>
-          <p className="profile-subtitle">
-            Manage your account, preferences, and fan achievements
-          </p>
-        </section>
+          <section className="profile-header">
+            <h1 className="profile-title">MY PROFILE</h1>
+            <p className="profile-subtitle">
+              Manage your account, preferences, and fan achievements
+            </p>
+          </section>
 
-        <section className="profile-layout">
-          <SidebarMenu
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+          <section className="profile-layout">
+            <SidebarMenu
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
 
-          <div className="profile-content">
-            {activeTab === "personal" && (
-              <PersonalInfo
-                profile={profile}
-                onSave={handleSaveProfile}
-                onAvatarUpload={handleAvatarUpload}
-              />
-            )}
+            <div className="profile-content">
+              {activeTab === "personal" && (
+                <PersonalInfo
+                  profile={profile}
+                  onSave={handleSaveProfile}
+                  onAvatarUpload={handleAvatarUpload}
+                />
+              )}
 
-            {activeTab === "addresses" && (
-              <Addresses
-                addresses={addresses}
-                onAddAddress={openAddModal}
-                onRemoveAddress={handleRemoveAddress}
-              />
-              
-            )}
+              {activeTab === "addresses" && (
+                <Addresses
+                  addresses={addresses}
+                  onAddAddress={openAddModal}
+                  onRemoveAddress={handleRemoveAddress}
+                />
+                
+              )}
 
-            {activeTab === "badges" && <Badges
-                badges={badges}
-                isLoading={isLoadingBadges}
-                error={badgesError}
-            />}
-          </div>
-        </section>
-      </main>
-      <AddressModal
-        isOpen={isAddressModalOpen}
-        onClose={closeAddModal}
-        onSubmit={handleCreateAddress}
+              {activeTab === "badges" && <Badges
+                  badges={badges}
+                  isLoading={isLoadingBadges}
+                  error={badgesError}
+              />}
+
+              {activeTab === "Posts History" && (
+                <UserPosts 
+                  posts={userPosts}
+                  expandedPostId={expandedPostId}
+                  upvotedPosts={upvotedPosts}
+                  onTogglePostDetails={handleTogglePostDetails}
+                  onLike={handleLikeClick}
+                  onOpenDetail={(selectedPost) => {
+                    setIsDetailsOpen(true);
+                    setSelectedPost(selectedPost);
+                  }}
+                />     
+              )}
+            </div>
+          </section>
+        </main>
+        <ModalComp
+          isOpen={isDetailsOpen}
+          onOpenChange={setIsDetailsOpen}
+          dialogClassName="w-[min(45vw,72rem)] max-w-none"
+          children={
+            selectedPost && (
+              <div className="space-y-6">
+                <PostDetail post={selectedPost} />
+                <RepliesList post_id={selectedPost.post_id} />
+              </div>
+            )
+          }
         />
-    </div>
+        <AddressModal
+          isOpen={isAddressModalOpen}
+          onClose={closeAddModal}
+          onSubmit={handleCreateAddress}
+          />
+      </div>
+    </>
   );
 }
 

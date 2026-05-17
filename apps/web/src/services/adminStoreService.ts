@@ -1,11 +1,7 @@
 import type { AdminProduct } from "../types";
 
 const ADMIN_STORE_URL =
-  import.meta.env.VITE_ADMIN_STORE_URL;
-
-if (!ADMIN_STORE_URL) {
-  throw new Error("VITE_ADMIN_STORE_URL is not configured");
-}
+  import.meta.env.VITE_ADMIN_STORE_URL || "/admin-store";
 
 async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${ADMIN_STORE_URL}${path}`, options);

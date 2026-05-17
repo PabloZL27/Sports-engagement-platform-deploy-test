@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { FiUploadCloud, FiTrash2, FiPlus } from "react-icons/fi";
 import { createProduct } from "../../services/adminStoreService";
+import { getProductImageValidationError } from "../../utils/productImageValidation";
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
@@ -64,6 +65,7 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
   // Submit
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState("");
+  const [imageError, setImageError] = useState("");
 
   // ── Handlers ──
 
@@ -81,6 +83,18 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const validationError = getProductImageValidationError(file);
+    if (validationError) {
+      setImageError(validationError);
+      setError(validationError);
+      setImageFile(null);
+      setImagePreview(null);
+      e.target.value = "";
+      return;
+    }
+
+    setImageError("");
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   }
@@ -139,6 +153,15 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
     if (productType === "no_size" && !stock) {
       setError("Please enter the stock quantity.");
       return;
+    }
+
+    if (imageFile) {
+      const validationError = getProductImageValidationError(imageFile);
+      if (validationError) {
+        setImageError(validationError);
+        setError(validationError);
+        return;
+      }
     }
 
     try {
@@ -271,7 +294,11 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
         <h4 className="font-bold text-gray-700 text-sm mb-4">Product Image</h4>
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-gray-200 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition"
+          className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition ${
+            imageError
+              ? "border-red-300 bg-red-50 hover:border-red-400"
+              : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+          }`}
         >
           {imagePreview ? (
             <img
@@ -296,7 +323,15 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
           onChange={handleImageChange}
           className="hidden"
         />
-        {imageFile && (
+        {imageError && (
+          <p
+            className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3"
+            role="alert"
+          >
+            {imageError}
+          </p>
+        )}
+        {imageFile && !imageError && (
           <p className="mt-2 text-xs text-gray-400 text-center">{imageFile.name}</p>
         )}
       </section>

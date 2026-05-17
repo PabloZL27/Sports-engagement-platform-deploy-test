@@ -25,6 +25,10 @@ import {
 
 function ProfilePage() {
   const { session } = Auth();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  if (!API_BASE_URL) {
+    throw new Error("VITE_API_BASE_URL is not configured");
+  }
   
   const [activeTab, setActiveTab] = useState<string>("personal");
   const [profile, setProfile] = useState<any>(null);
@@ -40,7 +44,7 @@ function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch("http://localhost:8081/profile/me", {
+      const res = await fetch(`${API_BASE_URL}/profile/me`, {
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
         },

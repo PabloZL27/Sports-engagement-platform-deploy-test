@@ -5,8 +5,9 @@ import WordleGame from "../components/wordle/WordleGame";
 
 const UNITY_BUILD_REVISION = "2026-03-12-bridge-fix-2";
 const TAB_BUTTON_BASE_CLASS =
-  "cursor-pointer rounded-full border border-[#b7c4d1] bg-white px-5 py-3 text-sm font-bold text-[#28415a]";
-const TAB_BUTTON_ACTIVE_CLASS = "border-[#0f3d78] bg-[#0f3d78] text-white";
+  "cursor-pointer rounded-full px-5 py-3 text-sm font-bold transition-colors";
+const TAB_BUTTON_INACTIVE_CLASS = "border border-[#b7c4d1] bg-white text-[#28415a]";
+const TAB_BUTTON_ACTIVE_CLASS = "border border-[#0f3d78] bg-[#0f3d78] text-white";
 
 function OffSeasonPage() {
   const [activeTab, setActiveTab] = useState<"unity" | "wordle">("unity");
@@ -27,7 +28,7 @@ function OffSeasonPage() {
               role="tab"
               aria-selected={activeTab === "unity"}
               className={`${TAB_BUTTON_BASE_CLASS} ${
-                activeTab === "unity" ? TAB_BUTTON_ACTIVE_CLASS : ""
+                activeTab === "unity" ? TAB_BUTTON_ACTIVE_CLASS : TAB_BUTTON_INACTIVE_CLASS
               }`}
               onClick={() => setActiveTab("unity")}
             >
@@ -38,7 +39,7 @@ function OffSeasonPage() {
               role="tab"
               aria-selected={activeTab === "wordle"}
               className={`${TAB_BUTTON_BASE_CLASS} ${
-                activeTab === "wordle" ? TAB_BUTTON_ACTIVE_CLASS : ""
+                activeTab === "wordle" ? TAB_BUTTON_ACTIVE_CLASS : TAB_BUTTON_INACTIVE_CLASS
               }`}
               onClick={() => setActiveTab("wordle")}
             >

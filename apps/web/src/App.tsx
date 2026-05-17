@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import MatchesPage from "./pages/MatchesPage";
 import MatchRoomPage from "./pages/MatchRoomPage";
 import StorePage from "./pages/StorePage";
@@ -23,6 +23,8 @@ import { Auth } from "./context/AuthContext";
 
 function App() {
   const { session } = Auth();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <CartProvider>
@@ -146,7 +148,7 @@ function App() {
             }
           />
         </Routes>
-        {session ? <FeedbackDrawer /> : null}
+        {session && !isAdminRoute ? <FeedbackDrawer /> : null}
       </>
     </CartProvider>
   );

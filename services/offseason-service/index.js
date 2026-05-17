@@ -10,6 +10,10 @@ const DEFAULT_TIMEZONE = process.env.WORDLE_TIMEZONE || "America/Monterrey";
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
 const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || "http://icarus-profile:4006";
+const WORDLE_DICTIONARY_TABLES = {
+  answer: "wordle_words",
+  general: "wordle_general_words",
+};
 
 function formatDateInTimezone(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -167,6 +171,40 @@ async function getWordleConfig() {
     puzzleDate: formatDateInTimezone(),
     maxAttempts: MAX_ATTEMPTS,
     wordLength: WORD_LENGTH,
+  };
+}
+
+async function getOrderedWordleWords(dictionaryType) {
+  const tableName = WORDLE_DICTIONARY_TABLES[dictionaryType];
+
+  if (!tableName) {
+    throw new Error("Invalid wordle dictionary type.");
+  }
+
+  const result = await pool.query(
+    `
+      SELECT word
+      FROM ${tableName}
+      ORDER BY word_order ASC;
+    `,
+  );
+
+  return result.rows.map((row) => row.word);
+}
+
+async function getWordleDictionary() {
+  const [answerWords, generalWords] = await Promise.all([
+    getOrderedWordleWords("answer"),
+    getOrderedWordleWords("general"),
+  ]);
+
+  if (answerWords.length === 0) {
+    throw new Error("Wordle answer dictionary is empty.");
+  }
+
+  return {
+    answerWords,
+    generalWords,
   };
 }
 
@@ -461,6 +499,7 @@ app.get("/", (req, res) => {
     endpoints: [
       "/health",
       "/wordle/config",
+      "/wordle/dictionary",
       "/wordle/leaderboard",
       "/wordle/leaderboard/:date",
       "/wordle/history",
@@ -484,6 +523,11 @@ app.get("/health", asyncHandler(async (req, res) => {
 app.get("/wordle/config", asyncHandler(async (req, res) => {
   const config = await getWordleConfig();
   res.json(config);
+}));
+
+app.get("/wordle/dictionary", asyncHandler(async (req, res) => {
+  const dictionary = await getWordleDictionary();
+  res.json(dictionary);
 }));
 
 app.get("/wordle/leaderboard", asyncHandler(async (req, res) => {

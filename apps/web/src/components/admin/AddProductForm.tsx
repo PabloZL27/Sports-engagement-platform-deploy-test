@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FiUploadCloud, FiTrash2, FiPlus } from "react-icons/fi";
 import { createProduct } from "../../services/adminStoreService";
 import { getProductImageValidationError } from "../../utils/productImageValidation";
@@ -66,6 +66,27 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState("");
   const [imageError, setImageError] = useState("");
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  const hasSizedProduct =
+    productType === "clothing" || productType === "footwear";
+
+  useEffect(() => {
+    if (!hasSizedProduct) return;
+
+    setVariants((prev) => {
+      const bySize = new Map(prev.map((v) => [v.size, v]));
+      return selectedSizes.map(
+        (size) =>
+          bySize.get(size) ?? {
+            size,
+            stock: "",
+            sku: "",
+            priceOverride: "",
+          },
+      );
+    });
+  }, [selectedSizes, hasSizedProduct]);
 
   // ── Handlers ──
 
@@ -78,6 +99,8 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
     setExtraSizes([]);
     setVariants([]);
     setStock("");
+    setError("");
+    setHasAttemptedSubmit(false);
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -103,6 +126,7 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
     setSelectedSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
     );
+    setError("");
   }
 
   function handleAddCustomSize() {
@@ -111,18 +135,7 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
     setExtraSizes((prev) => [...prev, trimmed]);
     setSelectedSizes((prev) => [...prev, trimmed]);
     setCustomSize("");
-  }
-
-  function generateVariants() {
-    if (!selectedSizes.length) return;
-    setVariants(
-      selectedSizes.map((size) => ({
-        size,
-        stock: "",
-        sku: "",
-        priceOverride: "",
-      }))
-    );
+    setError("");
   }
 
   function updateVariant(index: number, field: keyof Variant, value: string) {
@@ -133,12 +146,13 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
 
   function removeVariant(index: number) {
     const removed = variants[index].size;
-    setVariants((prev) => prev.filter((_, i) => i !== index));
     setSelectedSizes((prev) => prev.filter((s) => s !== removed));
+    setError("");
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setHasAttemptedSubmit(true);
     setError("");
 
     // Validations
@@ -146,8 +160,8 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
       setError("Please fill in all required fields.");
       return;
     }
-    if (productType !== "no_size" && variants.length === 0) {
-      setError("Please generate and configure at least one size variant.");
+    if (hasSizedProduct && variants.length === 0) {
+      setError("Please select at least one size.");
       return;
     }
     if (productType === "no_size" && !stock) {
@@ -381,15 +395,11 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
             </button>
           </div>
 
-          {/* Generate Variants button */}
-          <button
-            type="button"
-            onClick={generateVariants}
-            disabled={!selectedSizes.length}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          >
-            Generate Variants ({selectedSizes.length} size{selectedSizes.length !== 1 ? "s" : ""})
-          </button>
+          {selectedSizes.length > 0 && (
+            <p className="text-xs text-gray-500">
+              Configure stock and optional SKU or price override for each selected size.
+            </p>
+          )}
 
           {/* Variants table */}
           {variants.length > 0 && (
@@ -482,9 +492,11 @@ export default function AddProductForm({ onSuccess, onCancel }: Props) {
         </section>
       )}
 
-      {/* ── Error ── */}
-      {error && (
-        <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3">{error}</p>
+      {/* ── Error (only after submit attempt) ── */}
+      {hasAttemptedSubmit && error && (
+        <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3" role="alert">
+          {error}
+        </p>
       )}
 
       {/* ── Actions ── */}

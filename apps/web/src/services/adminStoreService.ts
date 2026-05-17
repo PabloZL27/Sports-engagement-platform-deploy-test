@@ -4,10 +4,11 @@ import {
   PRODUCT_IMAGE_TOO_LARGE_MESSAGE,
 } from "../utils/productImageValidation";
 
-// Local: http://localhost:4013
-// Gateway: http://localhost:8081/admin-store
+// Dev (Vite proxy): /admin-store → gateway :8081
+// Direct: http://localhost:4013 or http://localhost:8081/admin-store
 const ADMIN_STORE_URL =
-  import.meta.env.VITE_ADMIN_STORE_URL || "http://localhost:4013";
+  import.meta.env.VITE_ADMIN_STORE_URL ||
+  (import.meta.env.DEV ? "/admin-store" : "http://localhost:4013");
 
 function resolveAdminFetchError(
   status: number,
@@ -27,17 +28,34 @@ function resolveAdminFetchError(
 }
 
 async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${ADMIN_STORE_URL}${path}`, options);
+  let res: Response;
+
+  try {
+    res = await fetch(`${ADMIN_STORE_URL}${path}`, options);
+  } catch {
+    throw new Error(
+      "Could not reach the admin store service. Ensure the gateway is running on port 8081 (docker compose in infra/) or admin-store-service on port 4013.",
+    );
+  }
+
   const contentType = res.headers.get("content-type") || "";
   const isJson = contentType.includes("application/json");
 
   let data: { error?: string; message?: string } | null = null;
   let fallbackText = "";
 
-  if (isJson) {
-    data = (await res.json()) as { error?: string; message?: string };
-  } else {
-    fallbackText = await res.text();
+  try {
+    if (isJson) {
+      data = (await res.json()) as { error?: string; message?: string };
+    } else {
+      fallbackText = await res.text();
+    }
+  } catch {
+    throw new Error(
+      res.ok
+        ? "Invalid response from admin store service."
+        : `Request failed (${res.status}). The service may be unavailable or returned a non-JSON error.`,
+    );
   }
 
   if (!res.ok) {

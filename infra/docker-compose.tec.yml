@@ -1,0 +1,4 @@
+networks:
+  supabase_net:
+    external: true
+    name: do4ksgcc0wksg4wwg4osgk0o

@@ -52,6 +52,6 @@ services:
 
   dashboard-service:
     environment:
-      PROFILE_SERVICE_URL: http://icarus-profile:4006
-      COMMUNITY_SERVICE_URL: http://icarus-community:4001
-      STORE_SERVICE_URL: http://icarus-store:4005
+      PROFILE_SERVICE_URL: http://profile-service:4006
+      COMMUNITY_SERVICE_URL: http://community-service:4001
+      STORE_SERVICE_URL: http://store-service:4005

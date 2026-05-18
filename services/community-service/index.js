@@ -753,6 +753,133 @@ app.get("/stats/total-posts", async (req, res) => {
   }
 });
 
+//User reports CRUD
+app.post("reports/create-user-report", async (req, res) => {
+    try {
+        const {
+            user_id, 
+            reason, 
+            content,
+        } = req.body;
+
+        const result = await pool.query(`
+            INSERT INTO user_reports
+            VALUES ($1, $2, $3)
+            RETURNING   
+                report_id, 
+                user_id, 
+                reason, 
+                content, 
+                status, 
+                created_at
+            `, [user_id, reason, content]);
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+
+    }catch (error) {
+        console.log("Error in creating new user report");
+        res.status(500).json({
+            success: false, 
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/list-user-reports",async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT * 
+            FROM user_reports
+            ORDER BY createdAt
+            `
+        )
+    } catch(error) {
+        console.error("Error in reports/list-user-reports");
+        res.status(500).json({
+            error: "Error al listar los reportes de usuarios",
+            details: error.message,
+        });
+    }
+});
+
+app.patch("/reports/edit-user-report", async (req, res) => {
+    try {
+        const {
+            report_id, 
+            status
+        } = req.body;
+
+        if (!report_id || !status) {
+            return res.status(400).json({
+                success: false, 
+                message: "Report id, and status are required"
+            })
+        }
+
+        const result = await pool.query(`
+            UPDATE user_reports
+            SET status = $1
+            WHERE report_id = $2
+            RETURNING 
+                report_id, 
+                user_id, 
+                reason, 
+                content, 
+                status, 
+                createdAt, 
+                reviewed_at;
+        `, [
+            report_id, 
+            status
+        ]);
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+})
+
+app.delete("/reports/delete-user-report", async (req, res) => {
+    try{
+        const { report_id } = req.body;
+        
+        if (!report_id) {
+            return res.status(400).json({
+                success: false, 
+                message: "Report id required"
+            });
+        }
+
+        const data = await pool.query(`
+            DELETE  
+            FROM user_reports
+            WHERE report_id = $1
+        `, [report_id]);
+
+        res.status(500).json({
+            success: true, 
+            result: data.rows[0]
+        });
+
+    }catch(error) {
+        console.log("Error in deleting user report");
+        res.status(500).json({
+            success: true,
+            result: error.message 
+        });
+    }
+});
+
 
 app.listen(PORT, () => {
     console.log(`Community service running on port ${PORT}`);

@@ -2,37 +2,37 @@ services:
   community-service:
     environment:
       PROFILE_SERVICE_URL: http://profile-service:4006
-      COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@host.docker.internal:15432/community_db
+      COMMUNITY_DB_URL: ${COMMUNITY_DB_URL:-postgresql://community_svc:CommunitySvc_2026_dev@host.docker.internal:15432/community_db}
 
   matches-service:
     environment:
-      MATCHES_DB_URL: postgresql://matches_svc:MatchesSvc_2026_dev@host.docker.internal:15432/matches_db
+      MATCHES_DB_URL: ${MATCHES_DB_URL:-postgresql://matches_svc:MatchesSvc_2026_dev@host.docker.internal:15432/matches_db}
       DEMO_MATCH_IDS: "2"
 
   rooms-service:
     environment:
-      ROOMS_DB_URL: postgresql://rooms_svc:RoomsSvc_2026_dev@host.docker.internal:15432/rooms_db
+      ROOMS_DB_URL: ${ROOMS_DB_URL:-postgresql://rooms_svc:RoomsSvc_2026_dev@host.docker.internal:15432/rooms_db}
       ROOMS_CHAT_PRUNE_INTERVAL_MS: "120000"
 
   analytics-service:
     environment:
-      ANALYTICS_DB_URL: postgresql://analytics_svc:AnalyticsSvc_2026_dev@host.docker.internal:15432/analytics_db
+      ANALYTICS_DB_URL: ${ANALYTICS_DB_URL:-postgresql://analytics_svc:AnalyticsSvc_2026_dev@host.docker.internal:15432/analytics_db}
 
   profile-service:
     environment:
-      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db
+      PROFILE_DB_URL: ${PROFILE_DB_URL:-postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db}
 
   history-service:
     environment:
-      HISTORY_DB_URL: postgresql://history_svc:postgres@host.docker.internal:15432/history_db
+      HISTORY_DB_URL: ${HISTORY_DB_URL:-postgresql://history_svc:postgres@host.docker.internal:15432/history_db}
 
   cards-service:
     environment:
-      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+      CARDS_DB_URL: ${CARDS_DB_URL:-postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db}
 
   offseason-service:
     environment:
-      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@host.docker.internal:15432/offseason_db
+      OFFSEASON_DB_URL: ${OFFSEASON_DB_URL:-postgresql://offseason_svc:OffseasonSvc_2026_dev@host.docker.internal:15432/offseason_db}
 
   news-service:
     environment:
@@ -46,7 +46,7 @@ services:
 
   feedback-service:
     environment:
-      FEEDBACKMAIL_DB_URL: postgresql://feedback_svc:FeedbackSvc_2026_dev@host.docker.internal:15432/feedback_db
+      FEEDBACKMAIL_DB_URL: ${FEEDBACKMAIL_DB_URL:-postgresql://feedback_svc:FeedbackSvc_2026_dev@host.docker.internal:15432/feedback_db}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODERATION_MODEL: ${OPENAI_MODERATION_MODEL:-omni-moderation-latest}
 

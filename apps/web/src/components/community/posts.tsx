@@ -1,6 +1,4 @@
-import { Card } from "@heroui/react";
-import { Icon } from "@iconify/react";
-import { MouseEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Auth } from "../../context/AuthContext";
 import { Post } from "../../types/community";
 import {
@@ -8,12 +6,13 @@ import {
   incrementPostUpvote,
   incrementPostView,
 } from "../../services/communityService";
-import { getInitials, filteredPosts } from "../../utils/postUtils";
+import { filteredPosts } from "../../utils/postUtils";
 import { ModalComp } from "../general/modal";
 import PostDetail from "./postDetail";
 import NewReply from "./newReply";
-import RepliesList from "./repliesList";
-import { getPostTime } from "../../utils/postUtils";
+import { SigninWithEmailForm } from "../auth/SignInForm";
+import { SignupForm } from "../auth/SignUpForm";
+import PostCard from "./PostCard";
 
 type PostCompProps = {
   activeFilter?: "hot" | "new";
@@ -31,6 +30,8 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [upvotedPosts, setUpvotedPosts] = useState<Set<number>>(new Set());
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [authView, setAuthView] = useState<"signup" | "signin">("signup");
 
   useEffect(() => {
     let isMounted = true;
@@ -66,18 +67,16 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
     return () => {
       isMounted = false;
     };
-  }, [refreshKey]);
+  }, [refreshKey, session?.user?.id]);
 
   const handleTogglePostDetails = async (postId: number) => {
     const isExpanding = expandedPostId !== postId;
-
     setExpandedPostId(isExpanding ? postId : null);
 
     if (!isExpanding) return;
 
     try {
       const updatedViews = await incrementPostView(postId);
-
       setPosts((currentPosts) =>
         currentPosts.map((post) =>
           post.post_id === postId
@@ -91,12 +90,13 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
   };
 
   const handleLikeClick = async (
-    event: MouseEvent<HTMLButtonElement>,
     postId: number
   ) => {
-    event.stopPropagation();
-
-    // prevent double-like client-side
+      // prevent double-like client-side
+    if (!session?.user.id) {
+      setIsOpen(true);
+      return;
+    }
     if (upvotedPosts.has(postId)) {
       // already liked by this user on client
       return;
@@ -138,128 +138,73 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
   if (loading) return <p className="py-8 text-center">Cargando posts...</p>;
   if (error) return <p className="py-8 text-center text-red-500">{error}</p>;
 
-  const isTrending = (post: Post) => post.upvotes_count > 100;
-  const isTopContributor = (post: Post) => post.views_count > 1000;
-
 
   return (
-    <div className="space-y-4">
-      {categoryFilteredPosts.map((post) => {
-        const isExpanded = expandedPostId === post.post_id;
-
-        return (
-          <Card
+    <>
+      <div className="space-y-4">
+        {categoryFilteredPosts.map((post) => (
+          <PostCard
             key={post.post_id}
-            className="border-l-4 border-blue-500 transition-shadow hover:shadow-md cursor-pointer"
-            onClick={() => handleTogglePostDetails(post.post_id)}
-          >
-            <div className="p-6">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-sky-700">
-                    {post.category_name}
-                  </span>
-                   <span className="text-xs text-gray-500">
-                      {getPostTime(post.created_at || "")}
-                  </span>
-                  {/* ... badges de trending y top contributor */}
-                </div>
-              </div>
-
-              <h3 className="mb-3 text-lg font-bold text-gray-900">
-                {post.title}
-              </h3>
-
-              <div className="mb-4 flex items-start gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-700">
-                    {getInitials(post.user_name)}
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {post.user_name}
-                  </span>
-                </div>
-              </div>
-
-              {isExpanded && (
-                <div 
-                  className="mt-2" 
-                  onClick={(e) => e.stopPropagation()} // Evita que clicks dentro del contenido cierren el post
-                >
-                  <p className="mb-4 text-sm text-black">
-                    {post.content}
-                  </p>
-                  <RepliesList post_id={post.post_id} />
-                </div>
-              )}
-
-              <div className="flex items-center gap-6 border-t border-gray-100 pt-3 text-sm text-gray-500">
-                <button 
-                  className="flex items-center gap-2 hover:cursor-pointer p-1 rounded-md hover:bg-gray-100" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsDetailsOpen(true);
-                    setSelectedPost(post);
-                  }}
-                >
-                  <Icon icon="mdi:message-outline" width={18} />
-                  <span className="font-semibold text-gray-900">{post.replies_count}</span>
-                  <span>Replies</span>
-                </button>
-
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <Icon icon="mdi:eye-outline" width={18} />
-                  <span className="font-semibold text-gray-900">{post.views_count}</span>
-                  <span>Views</span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    void handleLikeClick(e, post.post_id);
-                  }}
-                  className={`flex items-center gap-2 rounded-full px-2 py-1 transition-colors ${upvotedPosts.has(post.post_id) ? 'bg-gray-100 text-gray-500 cursor-default' : 'hover:bg-gray-100'}`}
-                  disabled={upvotedPosts.has(post.post_id)}
-                >
-                  <Icon icon="mdi:thumb-up-outline" width={18} />
-                  <span className="font-semibold text-gray-900">{post.upvotes_count}</span>
-                  <span>Upvotes</span>
-                </button>
-              </div>
-            </div>  
-          </Card>
-        );
-      })}
-      <ModalComp 
-        isOpen={isDetailsOpen}
-        onOpenChange={setIsDetailsOpen}
-        dialogClassName="w-[min(45vw,72rem)] max-w-none"
-        children={
-         selectedPost && (
-          <div className="space-y-6">
-            <PostDetail post={selectedPost} />
-            <NewReply 
-              postId={selectedPost.post_id}
-              onSuccess={(newComments) => {
-                if (newComments && selectedPost) {
-                  setPosts((currentPosts) =>
-                    currentPosts.map((p) =>
-                      p.post_id === selectedPost.post_id
-                        ? { ...p, replies_count: newComments.length }
-                        : p
-                    )
-                  );
-                }
-                setIsDetailsOpen(false);
-              }}
-              onCancel={() => setIsDetailsOpen(false)}
-            />
-          </div>
-         )
-        }
-      />
-    </div>
+            post={post}
+            expanded={expandedPostId === post.post_id}
+            isLiked={upvotedPosts.has(post.post_id)}
+            onClick={handleTogglePostDetails}
+            onLike={handleLikeClick}
+            onOpenDetail={(selectedPost) => {
+              setIsDetailsOpen(true);
+              setSelectedPost(selectedPost)
+            }}
+          />
+        ))}
+        <ModalComp 
+          isOpen={isDetailsOpen}
+          onOpenChange={setIsDetailsOpen}
+          dialogClassName="w-[min(45vw,72rem)] max-w-none"
+          children={
+          selectedPost && (
+            <div className="space-y-6">
+              <PostDetail post={selectedPost} />
+              <NewReply 
+                postId={selectedPost.post_id}
+                onSuccess={(newComments) => {
+                  if (newComments && selectedPost) {
+                    setPosts((currentPosts) =>
+                      currentPosts.map((p) =>
+                        p.post_id === selectedPost.post_id
+                          ? { ...p, replies_count: newComments.length }
+                          : p
+                      )
+                    );
+                  }
+                  setIsDetailsOpen(false);
+                }}
+                onCancel={() => setIsDetailsOpen(false)}
+              />
+            </div>
+          )
+          }
+        />
+      </div>
+      <div className="gap-12" style={{ flexShrink: 0 }}>
+        <ModalComp 
+          isOpen={isOpen} 
+          onOpenChange={setIsOpen} 
+          children={
+            authView === "signup" ? (
+              <SignupForm 
+                onSuccess={() => setIsOpen(false)} 
+                onSwitchToSignIn={() => setAuthView("signin")} // Cambia a vista signin
+              />
+            ) : (
+              <SigninWithEmailForm 
+                onSuccess={() => setIsOpen(false)}
+                onSwitchToSignUp={() => setAuthView("signup")} 
+              />
+            )
+          }
+        />
+      </div>
+    </>
   );
 };
 

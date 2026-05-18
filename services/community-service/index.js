@@ -1,11 +1,62 @@
 const express = require("express");
 const { pool } = require("./db");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 app.use(express.json());
 
+try {
+    if (typeof globalThis.WebSocket === "undefined") {
+        // Provide a WebSocket implementation for Node 20 where it's not available
+        globalThis.WebSocket = require("ws");
+    }
+} catch (err) {
+    // If ws isn't available for some reason, continue; the error will surface elsewhere
+    console.warn("WebSocket shim not installed:", err?.message || err);
+}
+
 const PORT = process.env.PORT || 4001;
 const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || "http://profile-service:4006";
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+);
+
+async function requireAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        status: "error",
+        message: "Missing or invalid Authorization header"
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error || !data?.user) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid token"
+      });
+    }
+
+    req.user = {
+      id: data.user.id,
+      email: data.user.email || null
+    };
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      status: "error",
+      message: "Authentication failed"
+    });
+  }
+}
 
 async function getProfilesByUserIds(userIds) {
   if (!Array.isArray(userIds) || userIds.length === 0) return [];
@@ -523,9 +574,9 @@ app.patch("/increment_reply_upvote", async (req, res) => {
     }
 });
 
-app.get("/user_posts", async (req, res) => {
+app.get("/user_posts", requireAuth, async (req, res) => { //AQUIIII 
     try{
-        const { user_id } = req.query;
+        const user_id = req.user.id;
 
         if (!user_id) {
             return res.status(400).json({
@@ -535,9 +586,22 @@ app.get("/user_posts", async (req, res) => {
         }
 
         const result = await pool.query(`
-            SELECT *
-            FROM posts
-            WHERE user_id = $1
+            SELECT
+                p.post_id,
+                p.user_id,
+                c.name AS category_name,
+                p.title,
+                p.content,
+                p.views_count,
+                p.upvotes_count,
+                COUNT(r.reply_id)::INTEGER AS replies_count,
+                p.created_at
+            FROM posts p
+            JOIN categories c ON c.category_id = p.category_id
+            LEFT JOIN replies r ON r.post_id = p.post_id
+            WHERE p.user_id = $1
+            GROUP BY p.post_id, c.category_id, c.name
+            ORDER BY p.created_at DESC;
         `, [user_id]);
 
         res.status(200).json({
@@ -687,6 +751,133 @@ app.get("/stats/total-posts", async (req, res) => {
       details: error.message,
     });
   }
+});
+
+//User reports CRUD
+app.post("reports/create-user-report", async (req, res) => {
+    try {
+        const {
+            user_id, 
+            reason, 
+            content,
+        } = req.body;
+
+        const result = await pool.query(`
+            INSERT INTO user_reports
+            VALUES ($1, $2, $3)
+            RETURNING   
+                report_id, 
+                user_id, 
+                reason, 
+                content, 
+                status, 
+                created_at
+            `, [user_id, reason, content]);
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+
+    }catch (error) {
+        console.log("Error in creating new user report");
+        res.status(500).json({
+            success: false, 
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/list-user-reports",async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT * 
+            FROM user_reports
+            ORDER BY createdAt
+            `
+        )
+    } catch(error) {
+        console.error("Error in reports/list-user-reports");
+        res.status(500).json({
+            error: "Error al listar los reportes de usuarios",
+            details: error.message,
+        });
+    }
+});
+
+app.patch("/reports/edit-user-report", async (req, res) => {
+    try {
+        const {
+            report_id, 
+            status
+        } = req.body;
+
+        if (!report_id || !status) {
+            return res.status(400).json({
+                success: false, 
+                message: "Report id, and status are required"
+            })
+        }
+
+        const result = await pool.query(`
+            UPDATE user_reports
+            SET status = $1
+            WHERE report_id = $2
+            RETURNING 
+                report_id, 
+                user_id, 
+                reason, 
+                content, 
+                status, 
+                createdAt, 
+                reviewed_at;
+        `, [
+            report_id, 
+            status
+        ]);
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+})
+
+app.delete("/reports/delete-user-report", async (req, res) => {
+    try{
+        const { report_id } = req.body;
+        
+        if (!report_id) {
+            return res.status(400).json({
+                success: false, 
+                message: "Report id required"
+            });
+        }
+
+        const data = await pool.query(`
+            DELETE  
+            FROM user_reports
+            WHERE report_id = $1
+        `, [report_id]);
+
+        res.status(500).json({
+            success: true, 
+            result: data.rows[0]
+        });
+
+    }catch(error) {
+        console.log("Error in deleting user report");
+        res.status(500).json({
+            success: true,
+            result: error.message 
+        });
+    }
 });
 
 

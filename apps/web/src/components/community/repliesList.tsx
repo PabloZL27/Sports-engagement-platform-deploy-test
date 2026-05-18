@@ -4,6 +4,9 @@ import { getPostTime, getInitials } from "../../utils/postUtils";
 import { useEffect, useState } from "react";
 import { getPostComments, incrementReplyUpvote } from "../../services/communityService";
 import { Auth } from "../../context/AuthContext";
+import { ModalComp } from "../general/modal";
+import { SignupForm } from "../auth/SignUpForm";
+import { SigninWithEmailForm } from "../auth/SignInForm";
 
 interface RepliesListProps {
   post_id: number;
@@ -14,6 +17,8 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
   const [loading, setLoading] = useState(false);
   const { session } = Auth();
   const [upvotedReplies, setUpvotedReplies] = useState<Set<number>>(new Set());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authView, setAuthView] = useState<"signup" | "signin">("signup");
 
   if (post_id == null) {
     return (
@@ -63,6 +68,12 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
   const visibleReplies = replies;
 
   const handleReplyLikeClick = async (replyId: number) => {
+    // Si no hay sesión, mostrar modal de auth
+    if (!session?.user?.id) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     // prevent duplicate like client-side
     if (upvotedReplies.has(replyId)) return;
 
@@ -94,6 +105,23 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
 
   return (
     <div className="space-y-4">
+      <ModalComp 
+        isOpen={isAuthModalOpen}
+        onOpenChange={setIsAuthModalOpen}
+        children={
+          authView === "signup" ? (
+            <SignupForm 
+              onSuccess={() => setIsAuthModalOpen(false)} 
+              onSwitchToSignIn={() => setAuthView("signin")}
+            />
+          ) : (
+            <SigninWithEmailForm 
+              onSuccess={() => setIsAuthModalOpen(false)}
+              onSwitchToSignUp={() => setAuthView("signup")}
+            />
+          )
+        }
+      />
       <div className="max-h-85 space-y-4 overflow-y-auto pr-1">
         {visibleReplies.map((reply) => {
           const name = reply.user_name || (reply.user_id ? `User ${reply.user_id}` : "Anonymous");

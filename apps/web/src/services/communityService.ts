@@ -109,9 +109,9 @@ export async function incrementReplyUpvote(replyId: number): Promise<number> {
   return data.result.upvotes_count;
 }
 
-export async function getUserPosts(userId: number): Promise<Post[]> {
+export async function getUserPosts(): Promise<Post[]> {
   const data = await apiFetch<ApiListResponse<Post[]>>(
-    `/community/user_posts?user_id=${userId}`
+    `/community/user_posts`
   );
 
   return data.result;

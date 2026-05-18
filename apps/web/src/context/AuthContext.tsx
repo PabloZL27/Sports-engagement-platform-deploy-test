@@ -103,7 +103,7 @@ export const AuthContextProvider = ({ children }: AuthContextProps) => {
       console.error("Error signing up: ", error);
       return {
         success: false,
-        error,
+        error: error.message,
       };
     }
 

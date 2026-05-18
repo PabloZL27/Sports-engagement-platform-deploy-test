@@ -31,6 +31,8 @@ services:
       PORT: 4001
       PROFILE_SERVICE_URL: http://profile-service:4006
       COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@supabase-db:5432/community_db
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
     ports:
       - "4001:4001"
     networks:

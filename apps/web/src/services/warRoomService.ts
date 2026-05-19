@@ -27,6 +27,8 @@ export interface WarRoomMatch {
     agendaSelected: boolean;
   };
   players: WarRoomPlayer[];
+  pendingTradeForYou: TradeProposal | null;
+  negotiateAttemptsLeft: number;
 }
 
 export interface WarRoomAgenda {
@@ -44,6 +46,22 @@ export interface HandCard {
   headshotUrl: string | null;
   tier: number;
   acquiredAt: string;
+}
+
+export interface NewsCard {
+  cardId: number;
+  headline: string;
+  story: string;
+  cashEffect: number;
+}
+
+export interface NewsActionResult {
+  card: NewsCard;
+  newTitansCash: number;
+  cashDelta: number;
+  activeSeat: number | null;
+  currentRound: number;
+  gameEnded: boolean;
 }
 
 export async function createMatch(
@@ -117,3 +135,227 @@ export async function getHand(
   );
   return data.hand;
 }
+
+export async function drawNews(
+  matchId: string,
+  token: string,
+): Promise<NewsActionResult> {
+  return apiFetch<NewsActionResult>(
+    `/api/war-room/matches/${matchId}/action/news`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+}
+
+export async function startMatch(
+    matchId: string,
+    token: string,
+  ): Promise<void> {
+    await apiFetch(`/api/war-room/matches/${matchId}/start`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  export interface ScoutCard {
+    poolId: number;
+    cardId: number;
+    displayName: string;
+    position: string;
+    headshotUrl: string | null;
+    tier: number;
+  }
+  
+  export interface BuyResult {
+    ok: boolean;
+    newTitansCash: number;
+    activeSeat: number | null;
+    currentRound: number;
+    gameEnded: boolean;
+  }
+  
+  export async function scoutPlayers(
+    matchId: string,
+    token: string,
+  ): Promise<ScoutCard[]> {
+    const data = await apiFetch<{ cards: ScoutCard[] }>(
+      `/api/war-room/matches/${matchId}/action/buy/scout`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    return data.cards;
+  }
+  
+  export async function pickPlayer(
+    matchId: string,
+    poolId: number,
+    discardHandId: number | null,
+    token: string,
+  ): Promise<BuyResult> {
+    return apiFetch<BuyResult>(
+      `/api/war-room/matches/${matchId}/action/buy/pick`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          poolId,
+          ...(discardHandId !== null ? { discardHandId } : {}),
+        }),
+      },
+    );
+  }
+  
+  export async function forfeitBuy(
+    matchId: string,
+    token: string,
+  ): Promise<BuyResult> {
+    return apiFetch<BuyResult>(
+      `/api/war-room/matches/${matchId}/action/buy/forfeit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+  }
+
+  export interface RivalCard {
+    handId: number;
+    cardId: number;
+    displayName: string;
+    position: string;
+    headshotUrl: string | null;
+    tier: number;
+  }
+  
+  export interface TradeCard {
+    handId: number;
+    name: string;
+    position: string;
+    headshotUrl: string | null;
+    tier: number;
+  }
+
+  export interface TradeProposal {
+    proposalId: string;
+    fromSeat: number;
+    cashOffer: number;
+    expiresAt: string;
+    offerCards: TradeCard[];
+    requestCards: TradeCard[];
+  }
+  
+  export interface AgendaResult {
+    name: string;
+    description: string;
+    bonusPoints: number;
+    conditionType: string;
+    achieved: boolean;
+  }
+  
+  export interface PlayerResult {
+    seat: number;
+    handTotal: number;
+    agendaBonus: number;
+    totalScore: number;
+    tiers: number[];
+    titansCash: number;
+    agendas: AgendaResult[];
+  }
+  
+  export interface MatchResults {
+    results: PlayerResult[];
+    winnerSeat: number;
+  }
+  
+  export async function passAction(
+    matchId: string,
+    token: string,
+  ): Promise<BuyResult> {
+    return apiFetch<BuyResult>(`/api/war-room/matches/${matchId}/action/pass`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+  
+  export async function getRivalHand(
+    matchId: string,
+    targetSeat: number,
+    token: string,
+  ): Promise<RivalCard[]> {
+    const data = await apiFetch<{ hand: RivalCard[] }>(
+      `/api/war-room/matches/${matchId}/rival-hand/${targetSeat}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return data.hand;
+  }
+  
+  export async function proposeTrade(
+    matchId: string,
+    toSeat: number,
+    offerHandIds: number[],
+    requestHandIds: number[],
+    cashOffer: number,
+    token: string,
+  ): Promise<{ ok: boolean; proposalId: string; attemptsLeft: number }> {
+    return apiFetch(
+      `/api/war-room/matches/${matchId}/action/trade/propose`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ toSeat, offerHandIds, requestHandIds, cashOffer }),
+      },
+    );
+  }
+  
+  export async function respondTrade(
+    matchId: string,
+    proposalId: string,
+    accept: boolean,
+    token: string,
+  ): Promise<{ ok: boolean; accepted: boolean; activeSeat?: number; currentRound?: number; gameEnded?: boolean }> {
+    return apiFetch(
+      `/api/war-room/matches/${matchId}/action/trade/respond`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ proposalId, accept }),
+      },
+    );
+  }
+  
+  export async function getResults(
+    matchId: string,
+    token: string,
+  ): Promise<MatchResults> {
+    return apiFetch<MatchResults>(`/api/war-room/matches/${matchId}/results`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }

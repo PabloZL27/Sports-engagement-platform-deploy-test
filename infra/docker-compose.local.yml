@@ -55,3 +55,7 @@ services:
       PROFILE_SERVICE_URL: http://icarus-profile:4006
       COMMUNITY_SERVICE_URL: http://icarus-community:4001
       STORE_SERVICE_URL: http://icarus-store:4005
+
+  reports-service:
+    environment:
+      COMMUNITY_SERVICE_URL: http://icarus-community:4001

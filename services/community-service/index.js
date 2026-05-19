@@ -754,7 +754,7 @@ app.get("/stats/total-posts", async (req, res) => {
 });
 
 //User reports CRUD
-app.post("reports/create-user-report", async (req, res) => {
+app.post("/reports/create-user-report", async (req, res) => {
     try {
         const {
             user_id, 
@@ -762,8 +762,19 @@ app.post("reports/create-user-report", async (req, res) => {
             content,
         } = req.body;
 
+        if (!user_id || !reason || !content) {
+            return res.status(400).json({
+                success: false,
+                message: "user_id, reason, and content are required"
+            });
+        }
+
         const result = await pool.query(`
-            INSERT INTO user_reports
+            INSERT INTO user_reports (
+                user_id,
+                reason,
+                content
+            )
             VALUES ($1, $2, $3)
             RETURNING   
                 report_id, 
@@ -771,7 +782,8 @@ app.post("reports/create-user-report", async (req, res) => {
                 reason, 
                 content, 
                 status, 
-                created_at
+                createdat,
+                reviewed_at
             `, [user_id, reason, content]);
 
         res.status(200).json({
@@ -788,14 +800,19 @@ app.post("reports/create-user-report", async (req, res) => {
     }
 });
 
-app.get("/reports/list-user-reports",async (req, res) => {
+app.get("/reports/list-user-reports", async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT * 
             FROM user_reports
-            ORDER BY createdAt
+            ORDER BY createdat DESC
             `
-        )
+        );
+
+        res.status(200).json({
+            success: true,
+            result: result.rows
+        });
     } catch(error) {
         console.error("Error in reports/list-user-reports");
         res.status(500).json({
@@ -821,7 +838,9 @@ app.patch("/reports/edit-user-report", async (req, res) => {
 
         const result = await pool.query(`
             UPDATE user_reports
-            SET status = $1
+            SET
+                status = $1,
+                reviewed_at = NOW()
             WHERE report_id = $2
             RETURNING 
                 report_id, 
@@ -829,11 +848,11 @@ app.patch("/reports/edit-user-report", async (req, res) => {
                 reason, 
                 content, 
                 status, 
-                createdAt, 
-                reviewed_at;
+                createdat, 
+                reviewed_at
         `, [
-            report_id, 
-            status
+            status,
+            report_id
         ]);
 
         res.status(200).json({
@@ -864,9 +883,10 @@ app.delete("/reports/delete-user-report", async (req, res) => {
             DELETE  
             FROM user_reports
             WHERE report_id = $1
+            RETURNING report_id
         `, [report_id]);
 
-        res.status(500).json({
+        res.status(200).json({
             success: true, 
             result: data.rows[0]
         });
@@ -874,8 +894,8 @@ app.delete("/reports/delete-user-report", async (req, res) => {
     }catch(error) {
         console.log("Error in deleting user report");
         res.status(500).json({
-            success: true,
-            result: error.message 
+            success: false,
+            error: error.message 
         });
     }
 });

@@ -814,7 +814,7 @@ app.get("/reports/list-user-reports", async (req, res) => {
             result: result.rows
         });
     } catch(error) {
-        console.error("Error in reports/list-user-reports");
+        console.error("Error in reports/list-user-reports:", error.message);
         res.status(500).json({
             error: "Error al listar los reportes de usuarios",
             details: error.message,
@@ -826,20 +826,20 @@ app.patch("/reports/edit-user-report", async (req, res) => {
     try {
         const {
             report_id, 
-            status
+            resolved_type
         } = req.body;
 
-        if (!report_id || !status) {
+        if (!report_id || !resolved_type) {
             return res.status(400).json({
                 success: false, 
-                message: "Report id, and status are required"
+                message: "Report id, and resolved status are required"
             })
         }
 
         const result = await pool.query(`
             UPDATE user_reports
             SET
-                status = $1,
+                resolved_type = $1,
                 reviewed_at = NOW()
             WHERE report_id = $2
             RETURNING 
@@ -848,10 +848,11 @@ app.patch("/reports/edit-user-report", async (req, res) => {
                 reason, 
                 content, 
                 status, 
+                resolved_type,
                 createdat, 
                 reviewed_at
         `, [
-            status,
+            resolved_type,
             report_id
         ]);
 
@@ -870,7 +871,7 @@ app.patch("/reports/edit-user-report", async (req, res) => {
 
 app.delete("/reports/delete-user-report", async (req, res) => {
     try{
-        const { report_id } = req.body;
+        const { report_id } = req.query;
         
         if (!report_id) {
             return res.status(400).json({

@@ -3,9 +3,11 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.PORT || 4015;
+const PORT = process.env.PORT || 4016;
 const COMMUNITY_SERVICE_URL =
   process.env.COMMUNITY_SERVICE_URL || "http://icarus-community:4001";
+const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL;
+const STORE_SERVICE_URL = process.env.STORE_SERVICE_URL;
   
 
 async function fetchJson(url, options = {}) {
@@ -20,7 +22,7 @@ async function fetchJson(url, options = {}) {
 
 app.get("/", (req, res) => {
   res.json({
-    service: "dashboard-service",
+    service: "reports-service",
     status: "ok",
     endpoints: [
       "/health",
@@ -42,7 +44,6 @@ app.get("/health", async (req, res) => {
   });
 });
 
-//read
 app.get("/reports/user/list-reports", async (req, res) => {
   try {
     const totalReports = await fetchJson(
@@ -61,7 +62,6 @@ app.get("/reports/user/list-reports", async (req, res) => {
   }
 });
 
-//create
 app.post("/reports/user/create-report", async (req, res) => {
   try {
     const { user_id, reason, content } = req.body;
@@ -77,26 +77,26 @@ app.post("/reports/user/create-report", async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error("dashboard-service total-members lookup failed:", error);
+    console.error("reports service create report failed:", error);
     res.status(502).json({
-      service: "dashboard-service",
+      service: "reports-service",
       status: "error",
-      error: "Unable to fetch total-members data",
+      error: "Unable to create user report",
       details: error.message,
     });
   }
 });
-//update
+
 app.patch("/reports/user/edit-report", async (req, res) => {
   try {
-    const { report_id, status } = req.body;
+    const { report_id, resolved_type } = req.body;
 
     const result = await fetchJson(
       `${COMMUNITY_SERVICE_URL}/reports/edit-user-report`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ report_id, status }),
+        body: JSON.stringify({ report_id, resolved_type }),
       }
     );
 
@@ -112,17 +112,15 @@ app.patch("/reports/user/edit-report", async (req, res) => {
   }
 });
 
-//delete
 app.delete("/reports/user/delete-report", async (req, res) => {
   try {
     const { report_id } = req.body;
 
     const result = await fetchJson(
-      `${COMMUNITY_SERVICE_URL}/reports/delete-user-report`,
+      `${COMMUNITY_SERVICE_URL}/reports/delete-user-report?report_id=${report_id}`,
       {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ report_id }),
       }
     );
 
@@ -136,4 +134,8 @@ app.delete("/reports/user/delete-report", async (req, res) => {
       details: error.message,
     });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`reports-service listening on port ${PORT}`);
 });

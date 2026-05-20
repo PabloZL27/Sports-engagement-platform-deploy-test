@@ -32,9 +32,8 @@ function MatchesPage() {
       setProfileError("");
 
       try {
-        const [matchesResult, profileResult] = await Promise.allSettled([
+        const [matchesResult] = await Promise.allSettled([
           getMatches(),
-          getProfile(1),
         ]);
 
         if (matchesResult.status === "fulfilled") {
@@ -50,10 +49,6 @@ function MatchesPage() {
           setError("Match calendar is temporarily unavailable.");
         }
 
-        if (profileResult.status === "rejected") {
-          console.error("Error loading profile:", profileResult.reason);
-          setProfileError("Could not load profile data.");
-        }
 
       } catch (err) {
         console.error("Unexpected error:", err);

@@ -2,7 +2,7 @@ import { apiFetch } from "./api";
 import type { ApiMatch } from "../types/match";
 
 export async function getMatches(): Promise<ApiMatch[]> {
-  return await apiFetch<ApiMatch[]>("/matches/");
+  return await apiFetch<ApiMatch[]>("/matches");
 }
 
 export async function getMatch(id: number): Promise<ApiMatch> {

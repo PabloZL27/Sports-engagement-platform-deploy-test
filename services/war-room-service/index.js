@@ -76,6 +76,11 @@ function broadcastMatch(matchId, payload, exceptSocket = null) {
   }
 }
 
+// ─── Startup migration ─────────────────────────────────────────────────────
+pool.query(
+  `ALTER TABLE war_match_players ADD COLUMN IF NOT EXISTS is_ready BOOLEAN NOT NULL DEFAULT FALSE;`,
+).catch((err) => console.error("migration is_ready error:", err));
+
 // ─── Cards / game initialization ───────────────────────────────────────────
 
 async function fetchRoster() {
@@ -359,11 +364,21 @@ app.get(
     }
 
     const participant = await pool.query(
-      `SELECT seat,
-              titans_cash   AS "titansCash",
-              agenda_pick_1 AS "agendaPick1"
-       FROM war_match_players
-       WHERE match_id = $1::uuid AND account_id = $2
+      `SELECT wmp.seat,
+              wmp.titans_cash   AS "titansCash",
+              COALESCE(wmp.is_ready, FALSE) AS "isReady",
+              wmp.agenda_pick_1 AS "agendaPick1",
+              wmp.agenda_pick_2 AS "agendaPick2",
+              a1.name           AS "agenda1Name",
+              a1.description    AS "agenda1Desc",
+              a1.bonus_points   AS "agenda1Bonus",
+              a2.name           AS "agenda2Name",
+              a2.description    AS "agenda2Desc",
+              a2.bonus_points   AS "agenda2Bonus"
+       FROM war_match_players wmp
+       LEFT JOIN agendas a1 ON a1.agenda_id = wmp.agenda_pick_1
+       LEFT JOIN agendas a2 ON a2.agenda_id = wmp.agenda_pick_2
+       WHERE wmp.match_id = $1::uuid AND wmp.account_id = $2
        LIMIT 1;`,
       [matchId, accountId],
     );
@@ -394,7 +409,8 @@ app.get(
     const players = await pool.query(
       `SELECT seat,
               titans_cash AS "titansCash",
-              (agenda_pick_1 IS NOT NULL) AS "agendaReady"
+              (agenda_pick_1 IS NOT NULL) AS "agendaReady",
+              COALESCE(is_ready, FALSE) AS "isReady"
        FROM war_match_players
        WHERE match_id = $1::uuid
        ORDER BY seat ASC;`,
@@ -411,28 +427,28 @@ app.get(
               mtp.from_seat   AS "fromSeat",
               mtp.cash_offer  AS "cashOffer",
               mtp.expires_at  AS "expiresAt",
-              (SELECT json_agg(json_build_object(
+              (SELECT json_build_object(
                  'handId', phc.id,
                  'name', mcp.display_name,
                  'position', mcp.position,
                  'headshotUrl', mcp.headshot_url,
                  'tier', mcp.tier
-               ))
+               )
                FROM player_hand_cards phc
                JOIN match_card_pool mcp ON mcp.id = phc.pool_id
-               WHERE phc.id = ANY(mtp.offer_hand_ids)
-              ) AS "offerCards",
-              (SELECT json_agg(json_build_object(
+               WHERE phc.id = mtp.offer_hand_ids[1]
+              ) AS "offerCard",
+              (SELECT json_build_object(
                  'handId', phc.id,
                  'name', mcp.display_name,
                  'position', mcp.position,
                  'headshotUrl', mcp.headshot_url,
                  'tier', mcp.tier
-               ))
+               )
                FROM player_hand_cards phc
                JOIN match_card_pool mcp ON mcp.id = phc.pool_id
-               WHERE phc.id = ANY(mtp.request_hand_ids)
-              ) AS "requestCards"
+               WHERE phc.id = mtp.request_hand_ids[1]
+              ) AS "requestCard"
        FROM match_trade_proposals mtp
        WHERE mtp.match_id = $1::uuid
          AND mtp.to_seat  = $2
@@ -457,12 +473,33 @@ app.get(
       negotiateAttemptsLeft = Math.max(0, 2 - attempts.rows[0].c);
     }
 
+    // Build agenda list for the requesting player
+    const myAgendas = [];
+    if (p.agendaPick1 && p.agenda1Name) {
+      myAgendas.push({
+        agendaId: p.agendaPick1,
+        name: p.agenda1Name,
+        description: p.agenda1Desc,
+        bonusPoints: p.agenda1Bonus,
+      });
+    }
+    if (p.agendaPick2 && p.agenda2Name) {
+      myAgendas.push({
+        agendaId: p.agendaPick2,
+        name: p.agenda2Name,
+        description: p.agenda2Desc,
+        bonusPoints: p.agenda2Bonus,
+      });
+    }
+
     res.json({
       ...m,
       you: {
         seat: p.seat,
         titansCash: p.titansCash,
+        isReady: p.isReady,
         agendaSelected: p.agendaPick1 !== null,
+        agendas: myAgendas,
       },
       players: players.rows,
       pendingTradeForYou,
@@ -513,7 +550,9 @@ app.post(
       }
   
       const countResult = await pool.query(
-        `SELECT COUNT(*)::int AS c FROM war_match_players WHERE match_id = $1::uuid;`,
+        `SELECT COUNT(*)::int AS c,
+                COUNT(*) FILTER (WHERE COALESCE(is_ready, FALSE) = TRUE)::int AS ready_c
+         FROM war_match_players WHERE match_id = $1::uuid;`,
         [matchId],
       );
   
@@ -521,6 +560,14 @@ app.post(
         res.status(400).json({
           status: "error",
           error: "Need at least 2 players to start",
+        });
+        return;
+      }
+
+      if (countResult.rows[0].ready_c < countResult.rows[0].c) {
+        res.status(400).json({
+          status: "error",
+          error: "Not all GMs are ready yet",
         });
         return;
       }
@@ -538,6 +585,38 @@ app.post(
       res.json({ ok: true });
     }),
   );
+
+// ─── POST /matches/:matchId/ready ─────────────────────────────────────────
+app.post(
+  "/matches/:matchId/ready",
+  asyncRoute(async (req, res) => {
+    const { accountId } = await resolveAccountIdFromRequest(req);
+    const matchId = String(req.params.matchId || "").trim();
+    const { ready = true } = req.body;
+
+    const playerResult = await pool.query(
+      `UPDATE war_match_players
+       SET is_ready = $1
+       WHERE match_id = $2::uuid AND account_id = $3
+       RETURNING seat;`,
+      [ready, matchId, accountId],
+    );
+
+    if (playerResult.rowCount === 0) {
+      res.status(403).json({ status: "error", error: "Forbidden" });
+      return;
+    }
+
+    broadcastMatch(matchId, {
+      type: "war_room_event",
+      name: "player_ready",
+      seat: playerResult.rows[0].seat,
+      ready,
+    });
+
+    res.json({ ok: true, seat: playerResult.rows[0].seat, ready });
+  }),
+);
 
 // GET /agendas
 app.get(
@@ -1228,11 +1307,42 @@ app.post(
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-  
+
+        // Lock the match row to prevent concurrent turn advances (e.g. trade accept racing with auto-pass)
+        const freshMatch = await client.query(
+          `SELECT status,
+                  active_seat         AS "activeSeat",
+                  current_global_turn AS "currentGlobalTurn",
+                  current_round       AS "currentRound"
+           FROM war_matches WHERE match_id = $1::uuid FOR UPDATE LIMIT 1;`,
+          [matchId],
+        );
+
+        if (freshMatch.rowCount === 0 || freshMatch.rows[0].status !== "PLAYING") {
+          await client.query("ROLLBACK");
+          res.status(409).json({ status: "error", error: "Match not in progress" });
+          return;
+        }
+
+        const freshActiveSeat = freshMatch.rows[0].activeSeat;
+
+        // If turn already advanced (concurrent trade accept), return current state without advancing again
+        if (freshActiveSeat !== player.seat) {
+          await client.query("ROLLBACK");
+          res.json({
+            ok: true,
+            activeSeat: freshActiveSeat,
+            currentRound: freshMatch.rows[0].currentRound,
+            gameEnded: false,
+            newTitansCash: player.titansCash ?? 0,
+          });
+          return;
+        }
+
         await client.query(
           `INSERT INTO match_turns_log (match_id, seat, turn_number, action_type, meta)
            VALUES ($1::uuid, $2, $3, 'pass', '{}');`,
-          [matchId, player.seat, match.currentGlobalTurn],
+          [matchId, player.seat, freshMatch.rows[0].currentGlobalTurn],
         );
   
         const seatsResult = await client.query(
@@ -1241,7 +1351,7 @@ app.post(
         );
   
         const advance = await advanceTurn(
-          client, matchId, match.currentGlobalTurn, match.activeSeat, seatsResult.rows[0].total,
+          client, matchId, freshMatch.rows[0].currentGlobalTurn, freshActiveSeat, seatsResult.rows[0].total,
         );
   
         await client.query("COMMIT");
@@ -1320,14 +1430,10 @@ app.post(
     asyncRoute(async (req, res) => {
       const { accountId } = await resolveAccountIdFromRequest(req);
       const matchId = String(req.params.matchId || "").trim();
-      const { toSeat, offerHandIds, requestHandIds, cashOffer = 0 } = req.body;
+      const { toSeat, offerHandId, requestHandId, cashOffer = 0 } = req.body;
 
-      if (
-        !toSeat ||
-        !Array.isArray(offerHandIds) || offerHandIds.length === 0 ||
-        !Array.isArray(requestHandIds) || requestHandIds.length === 0
-      ) {
-        res.status(400).json({ status: "error", error: "toSeat, offerHandIds[] and requestHandIds[] required" });
+      if (!toSeat || !offerHandId || !requestHandId) {
+        res.status(400).json({ status: "error", error: "toSeat, offerHandId and requestHandId required" });
         return;
       }
 
@@ -1392,46 +1498,26 @@ app.post(
         return;
       }
 
-      // Check hand sizes after trade won't exceed 6
-      const myHandCount = await pool.query(
-        `SELECT COUNT(*)::int AS c FROM player_hand_cards WHERE match_id = $1::uuid AND seat = $2;`,
-        [matchId, player.seat],
+      // Verify offer card belongs to proposer
+      const offerCheck = await pool.query(
+        `SELECT 1 FROM player_hand_cards
+         WHERE id = $1 AND match_id = $2::uuid AND seat = $3 LIMIT 1;`,
+        [offerHandId, matchId, player.seat],
       );
-      const theirHandCount = await pool.query(
-        `SELECT COUNT(*)::int AS c FROM player_hand_cards WHERE match_id = $1::uuid AND seat = $2;`,
-        [matchId, toSeat],
-      );
-      const myNewSize = myHandCount.rows[0].c - offerHandIds.length + requestHandIds.length;
-      const theirNewSize = theirHandCount.rows[0].c - requestHandIds.length + offerHandIds.length;
-      if (myNewSize > 6 || theirNewSize > 6) {
-        res.status(400).json({ status: "error", error: "Trade would exceed the 6-card hand limit" });
+      if (offerCheck.rowCount === 0) {
+        res.status(400).json({ status: "error", error: "Offer card not in your hand" });
         return;
       }
 
-      // Verify all offer cards belong to proposer
-      for (const handId of offerHandIds) {
-        const check = await pool.query(
-          `SELECT 1 FROM player_hand_cards
-           WHERE id = $1 AND match_id = $2::uuid AND seat = $3 LIMIT 1;`,
-          [handId, matchId, player.seat],
-        );
-        if (check.rowCount === 0) {
-          res.status(400).json({ status: "error", error: `Card ${handId} not in your hand` });
-          return;
-        }
-      }
-
-      // Verify all request cards belong to target
-      for (const handId of requestHandIds) {
-        const check = await pool.query(
-          `SELECT 1 FROM player_hand_cards
-           WHERE id = $1 AND match_id = $2::uuid AND seat = $3 LIMIT 1;`,
-          [handId, matchId, toSeat],
-        );
-        if (check.rowCount === 0) {
-          res.status(400).json({ status: "error", error: `Card ${handId} not in rival's hand` });
-          return;
-        }
+      // Verify request card belongs to target
+      const requestCheck = await pool.query(
+        `SELECT 1 FROM player_hand_cards
+         WHERE id = $1 AND match_id = $2::uuid AND seat = $3 LIMIT 1;`,
+        [requestHandId, matchId, toSeat],
+      );
+      if (requestCheck.rowCount === 0) {
+        res.status(400).json({ status: "error", error: "Requested card not in rival's hand" });
+        return;
       }
 
       const expiresAt = new Date(Date.now() + 15_000);
@@ -1446,8 +1532,8 @@ app.post(
           match.currentGlobalTurn,
           player.seat,
           toSeat,
-          offerHandIds,
-          requestHandIds,
+          [offerHandId],
+          [requestHandId],
           cashOffer,
           expiresAt,
         ],
@@ -1570,46 +1656,32 @@ app.post(
       try {
         await client.query("BEGIN");
   
-        // Swap all offer cards → target's hand
-        for (const handId of proposal.offerHandIds) {
-          const poolRow = await client.query(
-            `SELECT mcp.id AS "poolId"
-             FROM player_hand_cards phc
-             JOIN match_card_pool mcp ON mcp.id = phc.pool_id
-             WHERE phc.id = $1 AND phc.match_id = $2::uuid LIMIT 1;`,
-            [handId, matchId],
-          );
-          if (poolRow.rowCount === 0) continue;
-          const poolId = poolRow.rows[0].poolId;
-          await client.query(
-            `UPDATE match_card_pool SET taken_by_seat = $1 WHERE id = $2;`,
-            [proposal.toSeat, poolId],
-          );
-          await client.query(
-            `UPDATE player_hand_cards SET seat = $1 WHERE match_id = $2::uuid AND pool_id = $3;`,
-            [proposal.toSeat, matchId, poolId],
-          );
+        // Swap offer card → target's hand
+        const offerPoolRow = await client.query(
+          `SELECT mcp.id AS "poolId"
+           FROM player_hand_cards phc
+           JOIN match_card_pool mcp ON mcp.id = phc.pool_id
+           WHERE phc.id = $1 AND phc.match_id = $2::uuid LIMIT 1;`,
+          [proposal.offerHandIds[0], matchId],
+        );
+        if (offerPoolRow.rowCount > 0) {
+          const poolId = offerPoolRow.rows[0].poolId;
+          await client.query(`UPDATE match_card_pool SET taken_by_seat = $1 WHERE id = $2;`, [proposal.toSeat, poolId]);
+          await client.query(`UPDATE player_hand_cards SET seat = $1 WHERE match_id = $2::uuid AND pool_id = $3;`, [proposal.toSeat, matchId, poolId]);
         }
 
-        // Swap all request cards → proposer's hand
-        for (const handId of proposal.requestHandIds) {
-          const poolRow = await client.query(
-            `SELECT mcp.id AS "poolId"
-             FROM player_hand_cards phc
-             JOIN match_card_pool mcp ON mcp.id = phc.pool_id
-             WHERE phc.id = $1 AND phc.match_id = $2::uuid LIMIT 1;`,
-            [handId, matchId],
-          );
-          if (poolRow.rowCount === 0) continue;
-          const poolId = poolRow.rows[0].poolId;
-          await client.query(
-            `UPDATE match_card_pool SET taken_by_seat = $1 WHERE id = $2;`,
-            [proposal.fromSeat, poolId],
-          );
-          await client.query(
-            `UPDATE player_hand_cards SET seat = $1 WHERE match_id = $2::uuid AND pool_id = $3;`,
-            [proposal.fromSeat, matchId, poolId],
-          );
+        // Swap request card → proposer's hand
+        const requestPoolRow = await client.query(
+          `SELECT mcp.id AS "poolId"
+           FROM player_hand_cards phc
+           JOIN match_card_pool mcp ON mcp.id = phc.pool_id
+           WHERE phc.id = $1 AND phc.match_id = $2::uuid LIMIT 1;`,
+          [proposal.requestHandIds[0], matchId],
+        );
+        if (requestPoolRow.rowCount > 0) {
+          const poolId = requestPoolRow.rows[0].poolId;
+          await client.query(`UPDATE match_card_pool SET taken_by_seat = $1 WHERE id = $2;`, [proposal.fromSeat, poolId]);
+          await client.query(`UPDATE player_hand_cards SET seat = $1 WHERE match_id = $2::uuid AND pool_id = $3;`, [proposal.fromSeat, matchId, poolId]);
         }
   
         // Transfer cash if any
@@ -1635,12 +1707,12 @@ app.post(
           [matchId, proposal.fromSeat, proposal.turnNumber, JSON.stringify({ proposalId })],
         );
   
-        // Advance turn
+        // Advance turn — lock the row to prevent concurrent pass racing with this accept
         const matchRow = await client.query(
           `SELECT active_seat AS "activeSeat",
                   current_global_turn AS "currentGlobalTurn",
                   current_round AS "currentRound"
-           FROM war_matches WHERE match_id = $1::uuid LIMIT 1;`,
+           FROM war_matches WHERE match_id = $1::uuid FOR UPDATE LIMIT 1;`,
           [matchId],
         );
   
@@ -1767,8 +1839,12 @@ app.post(
             else if (c === "trade_accepted") achieved = tradesDone >= 1;
             else if (c === "news_drawn") achieved = newsCount >= 3;
   
-            if (achieved) agendaBonus += agenda.bonusPoints;
-            agendaDetails.push({ ...agenda, achieved });
+            if (achieved) {
+                agendaBonus += agenda.bonusPoints;
+              } else {
+                agendaBonus -= agenda.bonusPoints;
+              }
+              agendaDetails.push({ ...agenda, achieved });
           }
   
           return {

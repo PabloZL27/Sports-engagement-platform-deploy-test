@@ -12,6 +12,14 @@ export interface WarRoomPlayer {
   seat: number;
   titansCash: number;
   agendaReady: boolean;
+  isReady: boolean;
+}
+
+export interface MyAgenda {
+  agendaId: number;
+  name: string;
+  description: string;
+  bonusPoints: number;
 }
 
 export interface WarRoomMatch {
@@ -24,7 +32,9 @@ export interface WarRoomMatch {
   you: {
     seat: number;
     titansCash: number;
+    isReady: boolean;
     agendaSelected: boolean;
+    agendas: MyAgenda[];
   };
   players: WarRoomPlayer[];
   pendingTradeForYou: TradeProposal | null;
@@ -259,8 +269,8 @@ export async function startMatch(
     fromSeat: number;
     cashOffer: number;
     expiresAt: string;
-    offerCards: TradeCard[];
-    requestCards: TradeCard[];
+    offerCard: TradeCard;
+    requestCard: TradeCard;
   }
   
   export interface AgendaResult {
@@ -314,8 +324,8 @@ export async function startMatch(
   export async function proposeTrade(
     matchId: string,
     toSeat: number,
-    offerHandIds: number[],
-    requestHandIds: number[],
+    offerHandId: number,
+    requestHandId: number,
     cashOffer: number,
     token: string,
   ): Promise<{ ok: boolean; proposalId: string; attemptsLeft: number }> {
@@ -327,7 +337,7 @@ export async function startMatch(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ toSeat, offerHandIds, requestHandIds, cashOffer }),
+        body: JSON.stringify({ toSeat, offerHandId, requestHandId, cashOffer }),
       },
     );
   }
@@ -357,5 +367,20 @@ export async function startMatch(
   ): Promise<MatchResults> {
     return apiFetch<MatchResults>(`/api/war-room/matches/${matchId}/results`, {
       headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  export async function markReady(
+    matchId: string,
+    ready: boolean,
+    token: string,
+  ): Promise<{ ok: boolean }> {
+    return apiFetch(`/api/war-room/matches/${matchId}/ready`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ ready }),
     });
   }

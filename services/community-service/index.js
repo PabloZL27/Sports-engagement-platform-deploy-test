@@ -899,7 +899,7 @@ app.get("/reports/list-community-reports", async (req, res) => {
                 p.resolved_type,
                 p.reviewed_at,
 
-                COUNT(pr.report_id)::INTEGER AS reports_count,
+                COUNT(pr.id_report)::INTEGER AS reports_count,
 
                 ARRAY_AGG(DISTINCT pr.reason) AS report_categories,
 
@@ -994,7 +994,97 @@ app.get("/reports/list-community-reports", async (req, res) => {
     }
 });
 
-app.post("reports/create-post-report", async (req, res) => {
+
+app.get("/reports/count-critical-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM (
+                SELECT
+                    p.post_id,
+                    p.report_status,
+                    COUNT(pr.id_report)::INTEGER AS reports_count
+                FROM posts p
+                INNER JOIN post_reports pr
+                    ON pr.post_id = p.post_id
+                WHERE p.report_status IS NOT NULL
+                  AND p.is_deleted = FALSE
+                GROUP BY
+                    p.post_id,
+                    p.report_status
+            ) reported_posts
+            WHERE report_status = 'Critical'
+               OR reports_count >= 5
+        `);
+
+        res.status(200).json({
+            success: true,
+            result: {
+                total: result.rows[0].total
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/count-pending-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM posts p
+            INNER JOIN post_reports pr
+                ON pr.post_id = p.post_id
+            WHERE p.report_status = 'Pending'
+              AND p.is_deleted = FALSE
+        `);
+
+        res.status(200).json({
+            success: true,
+            result: {
+                total: result.rows[0].total
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/count-resolved-this-month", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM posts
+            WHERE report_status = 'Resolved'
+              AND reviewed_at >= DATE_TRUNC('month', NOW())
+              AND reviewed_at < DATE_TRUNC('month', NOW()) + INTERVAL '1 month'
+        `);
+
+        res.status(200).json({
+            success: true,
+            result: {
+                total: result.rows[0].total
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+
+app.post("/reports/create-post-report", async (req, res) => {
     try {
 
         const {
@@ -1031,7 +1121,7 @@ app.post("reports/create-post-report", async (req, res) => {
 
         // Verificar si ya reportó el post
         const existingReport = await pool.query(`
-            SELECT report_id
+            SELECT id_report
             FROM post_reports
             WHERE post_id = $1
               AND reported_by_user_id = $2
@@ -1140,6 +1230,8 @@ app.patch("/reports/moderate-report", async (req, res) => {
 
     }
 });
+
+
 
 
 

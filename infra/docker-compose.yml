@@ -20,6 +20,7 @@ services:
       - feedback-service
       - admin-store-service
       - dashboard-service
+      - reports-service
     networks:
       - supabase_net
 
@@ -192,6 +193,18 @@ services:
       STORE_SERVICE_URL: http://icarus-store:4005
     ports:
       - "4015:4015"
+    networks:
+      - supabase_net
+
+  reports-service:
+    build:
+      context: ../services/reports-service
+    container_name: icarus-reports
+    environment:
+      PORT: 4016
+      COMMUNITY_SERVICE_URL: http://icarus-community:4001
+    ports:
+      - "4016:4016"
     networks:
       - supabase_net
 

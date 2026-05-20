@@ -1112,8 +1112,8 @@ app.patch("/reports/moderate-report", async (req, res) => {
             return res.status(400).json({
                 success: false,
                 error: "Missing required fields"
-            });
-        }
+        });
+    }
 
         switch(action) {
 

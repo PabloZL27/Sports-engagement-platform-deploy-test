@@ -1,5 +1,5 @@
 import { type TradeProposal } from "../../services/warRoomService";
-import { TIER_STYLES } from "./warRoomTypes";
+import { WarRoomCardVisual } from "./WarRoomCardVisual";
 
 interface Props {
   trade: TradeProposal;
@@ -9,9 +9,6 @@ interface Props {
 }
 
 export function WarRoomIncomingTradeModal({ trade, timer, loading, onRespond }: Props) {
-  const offerStyle = TIER_STYLES[trade.offerCard?.tier] ?? TIER_STYLES[1];
-  const requestStyle = TIER_STYLES[trade.requestCard?.tier] ?? TIER_STYLES[1];
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="mx-4 w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
@@ -31,62 +28,34 @@ export function WarRoomIncomingTradeModal({ trade, timer, loading, onRespond }: 
 
         <div className="p-6 space-y-4">
           <div className="rounded-xl border border-gray-200 p-4 space-y-3 text-sm">
-            {/* Card they offer */}
             <div>
               <p className="text-xs text-gray-400 mb-2">They offer</p>
               {trade.offerCard ? (
-                <div className="flex items-center gap-3">
-                  {trade.offerCard.headshotUrl ? (
-                    <img
-                      src={trade.offerCard.headshotUrl}
-                      alt={trade.offerCard.name}
-                      className="w-10 h-10 object-cover object-top rounded-lg bg-gray-100 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                      <span className="text-gray-300 font-black">?</span>
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-black text-[#0B2A55]">{trade.offerCard.name}</p>
-                    <p className="text-[10px] text-gray-500">{trade.offerCard.position}</p>
-                    <span className={`text-[10px] font-bold ${offerStyle.text}`}>
-                      {offerStyle.label}
-                    </span>
-                  </div>
-                </div>
+                <WarRoomCardVisual
+                  displayName={trade.offerCard.name}
+                  position={trade.offerCard.position}
+                  headshotUrl={trade.offerCard.headshotUrl}
+                  tier={trade.offerCard.tier}
+                  size="row"
+                />
               ) : null}
               {trade.cashOffer > 0 && (
-                <p className="text-sm font-bold text-green-600 pl-1 mt-1">
+                <p className="text-sm font-bold text-green-600 mt-2">
                   + {trade.cashOffer} TC
                 </p>
               )}
             </div>
 
-            {/* Card they want */}
             <div className="border-t pt-3">
               <p className="text-xs text-gray-400 mb-2">In exchange for your card</p>
               {trade.requestCard ? (
-                <div className="flex items-center gap-3">
-                  {trade.requestCard.headshotUrl ? (
-                    <img
-                      src={trade.requestCard.headshotUrl}
-                      alt={trade.requestCard.name}
-                      className="w-10 h-10 object-cover object-top rounded-lg bg-gray-100 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                      <span className="text-gray-300 font-black">?</span>
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-black text-[#0B2A55]">{trade.requestCard.name}</p>
-                    <p className="text-[10px] text-gray-500">{trade.requestCard.position}</p>
-                    <span className={`text-[10px] font-bold ${requestStyle.text}`}>
-                      {requestStyle.label}
-                    </span>
-                  </div>
-                </div>
+                <WarRoomCardVisual
+                  displayName={trade.requestCard.name}
+                  position={trade.requestCard.position}
+                  headshotUrl={trade.requestCard.headshotUrl}
+                  tier={trade.requestCard.tier}
+                  size="row"
+                />
               ) : null}
             </div>
           </div>

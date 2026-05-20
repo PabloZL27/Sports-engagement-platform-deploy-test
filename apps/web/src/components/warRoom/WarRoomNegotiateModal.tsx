@@ -3,7 +3,8 @@ import {
   type RivalCard,
   type WarRoomPlayer,
 } from "../../services/warRoomService";
-import { type NegotiateStep, TIER_STYLES, TRADE_RESPONSE_SECONDS } from "./warRoomTypes";
+import { WarRoomCardVisual } from "./WarRoomCardVisual";
+import { TRADE_RESPONSE_SECONDS, type NegotiateStep } from "./warRoomTypes";
 
 interface Props {
   step: NegotiateStep;
@@ -122,39 +123,26 @@ export function WarRoomNegotiateModal({
                   <p className="text-[10px] text-gray-400 mb-2">Select one card</p>
                   <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                     {myHand.map((card) => {
-                      const style = TIER_STYLES[card.tier] ?? TIER_STYLES[1];
                       const isChosen = myCard?.id === card.id;
                       return (
                         <button
                           key={card.id}
                           type="button"
                           onClick={() => onSelectMyCard(card)}
-                          className={`w-full flex items-center gap-3 rounded-xl border-2 p-2 text-left transition-all ${
+                          className={`w-full flex items-center gap-2 rounded-xl border-2 p-2 text-left transition-all ${
                             isChosen
                               ? "border-[#0f3d78] bg-[#0f3d78]/10"
                               : "border-gray-200 hover:border-[#60A5FA]"
                           }`}
                         >
-                          {card.headshotUrl ? (
-                            <img
-                              src={card.headshotUrl}
-                              alt={card.displayName}
-                              className="w-10 h-10 object-cover object-top rounded-lg bg-gray-100 shrink-0"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                              <span className="text-gray-300 text-lg font-black">?</span>
-                            </div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-black text-[#0B2A55] truncate">
-                              {card.displayName}
-                            </p>
-                            <p className="text-[10px] text-gray-500">{card.position}</p>
-                            <span className={`text-[10px] font-bold ${style.text}`}>
-                              {style.label}
-                            </span>
-                          </div>
+                          <WarRoomCardVisual
+                            displayName={card.displayName}
+                            position={card.position}
+                            headshotUrl={card.headshotUrl}
+                            tier={card.tier}
+                            size="row"
+                            className="flex-1"
+                          />
                           {isChosen && (
                             <span className="shrink-0 w-4 h-4 rounded-full bg-[#0f3d78]" />
                           )}
@@ -175,39 +163,26 @@ export function WarRoomNegotiateModal({
                   ) : (
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                       {rivalHand.map((card) => {
-                        const style = TIER_STYLES[card.tier] ?? TIER_STYLES[1];
                         const isChosen = theirCard?.handId === card.handId;
                         return (
                           <button
                             key={card.handId}
                             type="button"
                             onClick={() => onSelectTheirCard(card)}
-                            className={`w-full flex items-center gap-3 rounded-xl border-2 p-2 text-left transition-all ${
+                            className={`w-full flex items-center gap-2 rounded-xl border-2 p-2 text-left transition-all ${
                               isChosen
                                 ? "border-[#0f3d78] bg-[#0f3d78]/10"
                                 : "border-gray-200 hover:border-[#60A5FA]"
                             }`}
                           >
-                            {card.headshotUrl ? (
-                              <img
-                                src={card.headshotUrl}
-                                alt={card.displayName}
-                                className="w-10 h-10 object-cover object-top rounded-lg bg-gray-100 shrink-0"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                                <span className="text-gray-300 text-lg font-black">?</span>
-                              </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs font-black text-[#0B2A55] truncate">
-                                {card.displayName}
-                              </p>
-                              <p className="text-[10px] text-gray-500">{card.position}</p>
-                              <span className={`text-[10px] font-bold ${style.text}`}>
-                                {style.label}
-                              </span>
-                            </div>
+                            <WarRoomCardVisual
+                              displayName={card.displayName}
+                              position={card.position}
+                              headshotUrl={card.headshotUrl}
+                              tier={card.tier}
+                              size="row"
+                              className="flex-1"
+                            />
                             {isChosen && (
                               <span className="shrink-0 w-4 h-4 rounded-full bg-[#0f3d78]" />
                             )}
@@ -276,25 +251,27 @@ export function WarRoomNegotiateModal({
 
               <div className="rounded-xl border border-gray-200 p-4 space-y-3">
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">You offer</p>
-                  <p className="text-sm font-black text-[#0B2A55]">
-                    {myCard.displayName}{" "}
-                    <span className={`text-xs font-bold ${(TIER_STYLES[myCard.tier] ?? TIER_STYLES[1]).text}`}>
-                      ({(TIER_STYLES[myCard.tier] ?? TIER_STYLES[1]).label})
-                    </span>
-                  </p>
+                  <p className="text-xs text-gray-400 mb-2">You offer</p>
+                  <WarRoomCardVisual
+                    displayName={myCard.displayName}
+                    position={myCard.position}
+                    headshotUrl={myCard.headshotUrl}
+                    tier={myCard.tier}
+                    size="row"
+                  />
                   {cash > 0 && (
-                    <p className="text-sm font-bold text-green-600">+ {cash} TC</p>
+                    <p className="text-sm font-bold text-green-600 mt-2">+ {cash} TC</p>
                   )}
                 </div>
                 <div className="border-t pt-3">
-                  <p className="text-xs text-gray-400 mb-1">You want</p>
-                  <p className="text-sm font-black text-[#0B2A55]">
-                    {theirCard.displayName}{" "}
-                    <span className={`text-xs font-bold ${(TIER_STYLES[theirCard.tier] ?? TIER_STYLES[1]).text}`}>
-                      ({(TIER_STYLES[theirCard.tier] ?? TIER_STYLES[1]).label})
-                    </span>
-                  </p>
+                  <p className="text-xs text-gray-400 mb-2">You want</p>
+                  <WarRoomCardVisual
+                    displayName={theirCard.displayName}
+                    position={theirCard.position}
+                    headshotUrl={theirCard.headshotUrl}
+                    tier={theirCard.tier}
+                    size="row"
+                  />
                 </div>
                 <div className="border-t pt-2 flex justify-between text-sm">
                   <span className="text-gray-400">Sending to</span>

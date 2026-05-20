@@ -1,5 +1,5 @@
 import { type HandCard, type ScoutCard } from "../../services/warRoomService";
-import { TIER_STYLES } from "./warRoomTypes";
+import { WarRoomCardVisual } from "./WarRoomCardVisual";
 
 interface Props {
   scoutCards: ScoutCard[];
@@ -54,43 +54,25 @@ export function WarRoomBuyModal({
               </p>
               <div className="grid grid-cols-3 gap-4 mb-6">
                 {scoutCards.map((card) => {
-                  const style = TIER_STYLES[card.tier] ?? TIER_STYLES[1];
                   const isChosen = selectedScout?.poolId === card.poolId;
                   return (
                     <button
                       key={card.poolId}
                       type="button"
                       onClick={() => onSelectScout(card)}
-                      className={`rounded-xl border-2 p-3 text-left transition-all ${
+                      className={`rounded-xl p-1 text-left transition-all ${
                         isChosen
-                          ? "border-[#0f3d78] bg-[#0f3d78]/10"
-                          : "border-gray-200 hover:border-[#60A5FA] hover:bg-blue-50"
+                          ? "ring-2 ring-[#0f3d78] ring-offset-2"
+                          : "hover:opacity-95"
                       }`}
                     >
-                      {card.headshotUrl ? (
-                        <img
-                          src={card.headshotUrl}
-                          alt={card.displayName}
-                          className="w-full h-24 object-cover object-top rounded-lg bg-gray-100 mb-2"
-                        />
-                      ) : (
-                        <div className="w-full h-24 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-                          <span className="text-gray-300 text-3xl font-black">
-                            ?
-                          </span>
-                        </div>
-                      )}
-                      <p className="text-xs font-black text-[#0B2A55] leading-tight truncate">
-                        {card.displayName}
-                      </p>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wide">
-                        {card.position}
-                      </p>
-                      <span
-                        className={`inline-block mt-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${style.bg} ${style.text}`}
-                      >
-                        {style.label}
-                      </span>
+                      <WarRoomCardVisual
+                        displayName={card.displayName}
+                        position={card.position}
+                        headshotUrl={card.headshotUrl}
+                        tier={card.tier}
+                        size="scout"
+                      />
                     </button>
                   );
                 })}
@@ -131,42 +113,23 @@ export function WarRoomBuyModal({
                 .
               </p>
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 mb-6">
-                {hand.map((card) => {
-                  const style = TIER_STYLES[card.tier] ?? TIER_STYLES[1];
-                  return (
-                    <button
-                      key={card.id}
-                      type="button"
-                      disabled={buyLoading}
-                      onClick={() =>
-                        onPickPlayer(selectedScout!.poolId, card.id)
-                      }
-                      className="flex flex-col rounded-xl border-2 border-red-200 bg-red-50 overflow-hidden hover:border-red-500 hover:bg-red-100 transition-all"
-                    >
-                      {card.headshotUrl ? (
-                        <img
-                          src={card.headshotUrl}
-                          alt={card.displayName}
-                          className="w-full h-16 object-cover object-top"
-                        />
-                      ) : (
-                        <div className="w-full h-16 bg-gray-100 flex items-center justify-center">
-                          <span className="text-gray-300 text-xl font-black">
-                            ?
-                          </span>
-                        </div>
-                      )}
-                      <div className="p-1">
-                        <p className="text-[9px] font-black text-[#0B2A55] leading-tight truncate">
-                          {card.displayName}
-                        </p>
-                        <span className={`text-[9px] font-bold ${style.text}`}>
-                          {style.label}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
+                {hand.map((card) => (
+                  <button
+                    key={card.id}
+                    type="button"
+                    disabled={buyLoading}
+                    onClick={() => onPickPlayer(selectedScout!.poolId, card.id)}
+                    className="rounded-xl ring-2 ring-red-400 ring-offset-2 transition-all hover:ring-red-600"
+                  >
+                    <WarRoomCardVisual
+                      displayName={card.displayName}
+                      position={card.position}
+                      headshotUrl={card.headshotUrl}
+                      tier={card.tier}
+                      size="mini"
+                    />
+                  </button>
+                ))}
               </div>
               <button
                 type="button"

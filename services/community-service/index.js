@@ -764,14 +764,15 @@ app.post("/reports/create-user-report", async (req, res) => {
     try {
         const {
             user_id, 
+            reported_by_user_id,
             reason, 
             content,
         } = req.body;
 
-        if (!user_id || !reason || !content) {
+        if (!user_id || !reason || !content || !reported_by_user_id) {
             return res.status(400).json({
                 success: false,
-                message: "user_id, reason, and content are required"
+                message: "user_id, reason, reported by user id and content are required"
             });
         }
 
@@ -779,18 +780,20 @@ app.post("/reports/create-user-report", async (req, res) => {
             INSERT INTO user_reports (
                 user_id,
                 reason,
-                content
+                content, 
+                reported_by
             )
-            VALUES ($1, $2, $3)
+            VALUES ($1, $2, $3, $4)
             RETURNING   
                 report_id, 
                 user_id, 
                 reason, 
                 content, 
-                status, 
+                status,
+                reported_by, 
                 createdat,
                 reviewed_at
-            `, [user_id, reason, content]);
+            `, [user_id, reason, content, reported_by_user_id]);
 
         res.status(200).json({
             success: true,
@@ -814,10 +817,36 @@ app.get("/reports/list-user-reports", async (req, res) => {
             ORDER BY createdat DESC
             `
         );
+        const reports = result.rows;
+
+        const uniqueUserIds = [
+            ...new Set(
+                reports
+                    .map((report) => report.user_id)
+                    .filter((id) => id != null)
+            )
+        ];
+
+        const profiles = await getProfilesByUserIds(uniqueUserIds);
+
+        const profileMap = new Map(
+            profiles.map((profile) => [
+                profile.user_id,
+                profile.username || profile.first_name || `User ${profile.user_id}`
+            ])
+        );
+
+        const enriched = reports.map((report) => ({
+            ...report,
+            user_name:
+                report.user_id
+                    ? profileMap.get(report.user_id) || `User ${report.user_id}`
+                    : "Anonymous"
+        }));
 
         res.status(200).json({
             success: true,
-            result: result.rows
+            result: enriched
         });
     } catch(error) {
         console.error("Error in reports/list-user-reports:", error.message);
@@ -828,26 +857,68 @@ app.get("/reports/list-user-reports", async (req, res) => {
     }
 });
 
+app.get("/reports/count-critical-user-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM user_reports
+            WHERE status = 'Critical'
+        `);
+
+        res.status(200).json({
+            success: true,
+            total: result.rows[0].total
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/count-pending-user-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM user_reports
+            WHERE status = 'Pending'
+        `);
+
+        res.status(200).json({
+            success: true,
+            total: result.rows[0].total
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 app.patch("/reports/edit-user-report", async (req, res) => {
     try {
         const {
             report_id, 
+            status,
             resolved_type
         } = req.body;
 
-        if (!report_id || !resolved_type) {
+        if (!report_id || !resolved_type || !status) {
             return res.status(400).json({
                 success: false, 
-                message: "Report id, and resolved status are required"
+                message: "Report id, status and resolved status are required"
             })
         }
 
         const result = await pool.query(`
             UPDATE user_reports
             SET
-                resolved_type = $1,
+                status = $1,
+                resolved_type = $2,
                 reviewed_at = NOW()
-            WHERE report_id = $2
+            WHERE report_id = $3
             RETURNING 
                 report_id, 
                 user_id, 
@@ -858,6 +929,7 @@ app.patch("/reports/edit-user-report", async (req, res) => {
                 createdat, 
                 reviewed_at
         `, [
+            status,
             resolved_type,
             report_id
         ]);

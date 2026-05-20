@@ -72,6 +72,26 @@ app.get("/health", async (req, res) => {
   }
 });
 
+app.get("/reports/count-banned-users", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT COUNT(*)::INTEGER AS total
+      FROM accounts
+      WHERE report_status = 'Banned'
+    `);
+
+    res.json({
+      status: "success",
+      total: result.rows[0].total
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      error: error.message
+    });
+  }
+});
+
 // Debug temporal: lista perfiles
 app.get("/", async (req, res) => {
   try {

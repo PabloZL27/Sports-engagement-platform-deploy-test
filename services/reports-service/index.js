@@ -29,7 +29,10 @@ app.get("/", (req, res) => {
       "/reports/user/list-reports",
       "/reports/user/create-report",
       "/reports/user/edit-report",
-      "/reports/user/delete-report"
+      "/reports/user/delete-report",
+      "/reports/user/count-critical",
+      "/reports/user/count-pending",
+      "/reports/user/count-banned"
     ],
   });
 });
@@ -62,16 +65,70 @@ app.get("/reports/user/list-reports", async (req, res) => {
   }
 });
 
+app.get("/reports/user/count-critical", async (req, res) => {
+  try {
+    const data = await fetchJson(
+      `${COMMUNITY_SERVICE_URL}/reports/count-critical-user-reports`
+    );
+
+    res.json(data);
+  } catch (error) {
+    console.error("reports service critical reports count failed:", error);
+    res.status(502).json({
+      service: "reports-service",
+      status: "error",
+      error: "Unable to fetch critical user reports count",
+      details: error.message,
+    });
+  }
+});
+
+app.get("/reports/user/count-pending", async (req, res) => {
+  try {
+    const data = await fetchJson(
+      `${COMMUNITY_SERVICE_URL}/reports/count-pending-user-reports`
+    );
+
+    res.json(data);
+  } catch (error) {
+    console.error("reports service pending reports count failed:", error);
+    res.status(502).json({
+      service: "reports-service",
+      status: "error",
+      error: "Unable to fetch pending user reports count",
+      details: error.message,
+    });
+  }
+});
+
+app.get("/reports/user/count-banned", async (req, res) => {
+  try {
+    const data = await fetchJson(
+      `${PROFILE_SERVICE_URL}/reports/count-banned-users`
+    );
+
+    res.json(data);
+  } catch (error) {
+    console.error("reports service banned users count failed:", error);
+    res.status(502).json({
+      service: "reports-service",
+      status: "error",
+      error: "Unable to fetch banned users count",
+      details: error.message,
+    });
+  }
+});
+// DONE
 app.post("/reports/user/create-report", async (req, res) => {
   try {
-    const { user_id, reason, content } = req.body;
+    const { user_id, reported_by_user_id, reason, content } = req.body;
 
     const result = await fetchJson(
       `${COMMUNITY_SERVICE_URL}/reports/create-user-report`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id, reason, content }),
+        body: JSON.stringify({ user_id, reported_by_user_id, reason, content }),
       }
     );
 
@@ -86,17 +143,17 @@ app.post("/reports/user/create-report", async (req, res) => {
     });
   }
 });
-
+//DONE
 app.patch("/reports/user/edit-report", async (req, res) => {
   try {
-    const { report_id, resolved_type } = req.body;
+    const { report_id, status, resolved_type } = req.body;
 
     const result = await fetchJson(
       `${COMMUNITY_SERVICE_URL}/reports/edit-user-report`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ report_id, resolved_type }),
+        body: JSON.stringify({ report_id, status, resolved_type }),
       }
     );
 
@@ -111,7 +168,7 @@ app.patch("/reports/user/edit-report", async (req, res) => {
     });
   }
 });
-
+//DONE
 app.delete("/reports/user/delete-report", async (req, res) => {
   try {
     const { report_id } = req.body;

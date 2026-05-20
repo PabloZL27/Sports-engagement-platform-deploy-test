@@ -27,7 +27,8 @@ function ReportPost({
   username = "xxspammer99",
   severity = "critical",
   timeAgo = "1 hr ago",
-  content = '"Earn $5000 a day from home effortlessly, click here → [link]..."',
+  title = "Make easy money from home!",
+  content = "Earn $5000 a day from home effortlessly, just click here and sign up with my referral link → [link]. Limited slots available, don't miss this opportunity, I promise you won't regret it. This worked for me and now I'm financially free.",
   reportReason = "Spam / Misleading advertising",
   reportedByCount = 7,
   onRemovePost,
@@ -51,8 +52,10 @@ function ReportPost({
           {timeAgo}
         </time>
       </div>
-
-      <p className="m-0 mt-4 text-[20px] font-medium leading-[1.25] text-[#344363]">
+      <h3 className="m-0 mt-2 text-[20px] font-extrabold leading-none text-[#15233d]">
+            {title}
+      </h3>
+      <p className="m-0 mt-2 rounded-xl text-[20px] font-medium leading-[1.25] text-[#596175] bg-white border-[2px] border-gray-300 p-[18px] italic ">
         {content}
       </p>
 
@@ -74,7 +77,7 @@ function ReportPost({
         <button
           type="button"
           onClick={onDismiss}
-          className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[16px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
+          className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[16px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] "
         >
           Dismiss
         </button>

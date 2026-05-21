@@ -2,6 +2,7 @@ import { Button, FieldError, Form, Input, Label, TextArea, TextField, Select } f
 import React, { useState } from "react"
 import { Auth } from "../../context/AuthContext";
 import { createPost } from "../../services/communityService";
+import { supabase } from "../../supabaseClient";
 
 interface NewPostFormProps {
     onSuccess: () => void;
@@ -29,12 +30,17 @@ export const NewPostForm = (props: NewPostFormProps) => {
         e.preventDefault();
         try {
             setLoading(true);
-            if (!session?.user?.id) {
+
+            const currentUserId =
+                session?.user?.id ||
+                (await supabase.auth.getSession()).data.session?.user?.id;
+
+            if (!currentUserId) {
                 console.error("Missing user id in session");
                 return;
             }
             await createPost({
-                user_id: session.user.id,
+                user_id: currentUserId,
                 category_name:category,
                 title:title, 
                 content:postContent

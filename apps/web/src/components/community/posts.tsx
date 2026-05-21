@@ -150,6 +150,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
             isLiked={upvotedPosts.has(post.post_id)}
             onClick={handleTogglePostDetails}
             onLike={handleLikeClick}
+            onRequireAuth={() => setIsOpen(true)}
             onOpenDetail={(selectedPost) => {
               setIsDetailsOpen(true);
               setSelectedPost(selectedPost)

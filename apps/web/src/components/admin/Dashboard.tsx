@@ -3,25 +3,15 @@ import { Card } from "@heroui/react";
 import MembersPerWeekChart from "../reportsC/ChartCard";
 import StatsCard, { type StatsTrend } from "../reportsC/StatsCard";
 import SectionCard from "../reportsC/SectionCard";
+import PostsPerDayChart from "../reportsC/PostPerDayChart";
 import PostsByCategoryChart from "../reportsC/PostsByCatChart";
 import TopContributorsCard from "../reportsC/TopContributorsCard";
-import { MOCK_POSTS_PER_DAY } from "../reportsC/mockReportData";
 import {
   dashboardService,
   type TotalMembersStat,
   type TotalPostsStat,
   type TotalProductsStat,
 } from "../../services/dashboardService";
-
-import "../../styles/admin.css";
-import "../../styles/profile.css";
-
-function formatPostDayLabel(value: string | number): string {
-  return new Date(value).toLocaleDateString("es", {
-    month: "short",
-    day: "numeric",
-  });
-}
 
 function resolveStatsTrend(
   trend: StatsTrend | undefined,
@@ -104,15 +94,19 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="personal-info-section">
-      <div className="personal-info-header">
-        <h2>DASHBOARD</h2>
-        <p>Admin overview and management tools will appear here</p>
+    <div className="w-full">
+      <div className="mb-7">
+        <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
+          DASHBOARD
+        </h2>
+        <p className="mt-[10px] text-[0.95rem] text-[#9aa3af]">
+          Admin overview and management tools will appear here
+        </p>
       </div>
 
-      <Card className="personal-info-card">
-        <div className="personal-info-card-body">
-          <div className="stats-grid">
+      <Card className="rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+        <div className="px-4 py-4">
+          <div className="mb-5 grid grid-cols-4 gap-3 max-[1200px]:grid-cols-2 max-[640px]:grid-cols-1">
             <StatsCard
               title="TOTAL MEMBERS"
               value={
@@ -149,33 +143,23 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="two-col">
+          <div className="mt-4 grid grid-cols-2 gap-4">
             <SectionCard />
-            <div className="background-chart">
+            <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
               <MembersPerWeekChart />
             </div>
           </div>
 
-          <div className="two-col">
-            <div className="background-chart">
-              <MembersPerWeekChart
-                endpoint="/api/dashboard/stats/posts-per-day"
-                fallbackData={MOCK_POSTS_PER_DAY}
-                formatXValue={formatPostDayLabel}
-                height={240}
-                stroke="#4e83b7"
-                title="Posts Per Day"
-                tooltipLabel="Posts"
-                xKey="day"
-                yKey="total_posts"
-              />
-            </div>
-            <div className="background-chart">
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
               <TopContributorsCard />
+            </div>
+            <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <PostsPerDayChart />
             </div>
           </div>
 
-          <div className="horizontal-section">
+          <div className="mt-4 rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
             <PostsByCategoryChart />
           </div>
         </div>

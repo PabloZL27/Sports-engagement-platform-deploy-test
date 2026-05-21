@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Match } from "../../types/match";
 import "../../styles/matchCard.css";
 import { useEffect, useRef, useState } from "react";
+import { resolveTeamLogoUrl } from "../../utils/teamLogo";
 
 interface MatchCardProps {
   match: Match;
@@ -182,13 +183,15 @@ interface TeamBlockProps {
 }
 
 function TeamBlock({ logo, abbreviation, name, align = "left" }: TeamBlockProps) {
+  const resolvedLogo = resolveTeamLogoUrl(abbreviation, logo);
+
   return (
     <div className={`min-w-0 flex-1 ${align === "right" ? "text-right" : "text-left"}`}>
       <div className={`mb-2 flex ${align === "right" ? "justify-end" : "justify-start"}`}>
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 shadow-sm">
-          {logo ? (
+          {resolvedLogo ? (
             <img
-              src={logo}
+              src={resolvedLogo}
               alt={name || abbreviation || "Team logo"}
               className="h-10 w-10 object-contain"
             />

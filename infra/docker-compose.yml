@@ -21,6 +21,7 @@ services:
       - feedback-service
       - admin-store-service
       - dashboard-service
+      - reports-service
     networks:
       - supabase_net
 
@@ -58,7 +59,9 @@ services:
     environment:
       PORT: 4003
       ROOMS_DB_URL: postgresql://rooms_svc:RoomsSvc_2026_dev@host.docker.internal:15432/rooms_db
-      ROOMS_CHAT_PRUNE_INTERVAL_MS: "120000"
+      ROOMS_CHAT_MESSAGE_MAX_AGE_MS: "1800000"
+      ROOMS_CHAT_PRUNE_INTERVAL_MS: "1800000"
+      ROOMS_CHAT_PRUNE_CHECK_INTERVAL_MS: "120000"
     networks:
       - supabase_net
 
@@ -207,6 +210,19 @@ services:
       STORE_SERVICE_URL: http://icarus-store:4005
     ports:
       - "4015:4015"
+    networks:
+      - supabase_net
+  
+  reports-service:
+    build:
+      context: ../services/reports-service
+    container_name: icarus-reports
+    environment:
+      PORT: 4016
+      COMMUNITY_SERVICE_URL: http://icarus-community:4001
+      PROFILE_SERVICE_URL: http://icarus-profile:4006
+    ports:
+      - "4016:4016"
     networks:
       - supabase_net
 

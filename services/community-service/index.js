@@ -166,17 +166,23 @@ app.get("/get_posts", async (req, res) => {
             SELECT 
                 p.post_id, 
                 p.user_id, 
-                c.name as category_name, 
+                c.name AS category_name, 
                 p.title, 
                 p.content, 
                 p.views_count, 
                 p.upvotes_count,
-                COUNT(r.reply_id)::INTEGER as replies_count,
+                COUNT(r.reply_id)::INTEGER AS replies_count,
                 p.created_at 
             FROM posts p
-            JOIN categories c ON c.category_id = p.category_id
-            LEFT JOIN replies r ON r.post_id = p.post_id 
-            GROUP BY p.post_id, c.category_id, c.name
+            JOIN categories c 
+                ON c.category_id = p.category_id
+            LEFT JOIN replies r 
+                ON r.post_id = p.post_id
+            WHERE p.is_deleted = FALSE
+            GROUP BY 
+                p.post_id, 
+                c.category_id, 
+                c.name
             ORDER BY p.created_at DESC
         `);
 
@@ -752,6 +758,575 @@ app.get("/stats/total-posts", async (req, res) => {
     });
   }
 });
+
+//User reports CRUD
+app.post("/reports/create-user-report", async (req, res) => {
+    try {
+        const {
+            user_id, 
+            reported_by_user_id,
+            reason, 
+            content,
+        } = req.body;
+
+        if (!user_id || !reason || !content || !reported_by_user_id) {
+            return res.status(400).json({
+                success: false,
+                message: "user_id, reason, reported by user id and content are required"
+            });
+        }
+
+        const result = await pool.query(`
+            INSERT INTO user_reports (
+                user_id,
+                reason,
+                content, 
+                reported_by
+            )
+            VALUES ($1, $2, $3, $4)
+            RETURNING   
+                report_id, 
+                user_id, 
+                reason, 
+                content, 
+                status,
+                reported_by, 
+                createdat,
+                reviewed_at
+            `, [user_id, reason, content, reported_by_user_id]);
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+
+    }catch (error) {
+        console.log("Error in creating new user report");
+        res.status(500).json({
+            success: false, 
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/list-user-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT * 
+            FROM user_reports
+            ORDER BY createdat DESC
+            `
+        );
+        const reports = result.rows;
+
+        const uniqueUserIds = [
+            ...new Set(
+                reports
+                    .map((report) => report.user_id)
+                    .filter((id) => id != null)
+            )
+        ];
+
+        const profiles = await getProfilesByUserIds(uniqueUserIds);
+
+        const profileMap = new Map(
+            profiles.map((profile) => [
+                profile.user_id,
+                profile.username || profile.first_name || `User ${profile.user_id}`
+            ])
+        );
+
+        const enriched = reports.map((report) => ({
+            ...report,
+            user_name:
+                report.user_id
+                    ? profileMap.get(report.user_id) || `User ${report.user_id}`
+                    : "Anonymous"
+        }));
+
+        res.status(200).json({
+            success: true,
+            result: enriched
+        });
+    } catch(error) {
+        console.error("Error in reports/list-user-reports:", error.message);
+        res.status(500).json({
+            error: "Error al listar los reportes de usuarios",
+            details: error.message,
+        });
+    }
+});
+
+app.get("/reports/count-critical-user-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM user_reports
+            WHERE status = 'Critical'
+        `);
+
+        res.status(200).json({
+            success: true,
+            total: result.rows[0].total
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/count-pending-user-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM user_reports
+            WHERE status = 'Pending'
+        `);
+
+        res.status(200).json({
+            success: true,
+            total: result.rows[0].total
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.patch("/reports/edit-user-report", async (req, res) => {
+    try {
+        const {
+            report_id, 
+            status,
+            resolved_type
+        } = req.body;
+
+        if (!report_id || !resolved_type || !status) {
+            return res.status(400).json({
+                success: false, 
+                message: "Report id, status and resolved status are required"
+            })
+        }
+
+        const result = await pool.query(`
+            UPDATE user_reports
+            SET
+                status = $1,
+                resolved_type = $2,
+                reviewed_at = NOW()
+            WHERE report_id = $3
+            RETURNING 
+                report_id, 
+                user_id, 
+                reason, 
+                content, 
+                status, 
+                resolved_type,
+                createdat, 
+                reviewed_at
+        `, [
+            status,
+            resolved_type,
+            report_id
+        ]);
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+})
+
+app.delete("/reports/delete-user-report", async (req, res) => {
+    try{
+        const { report_id } = req.query;
+        
+        if (!report_id) {
+            return res.status(400).json({
+                success: false, 
+                message: "Report id required"
+            });
+        }
+
+        const data = await pool.query(`
+            DELETE  
+            FROM user_reports
+            WHERE report_id = $1
+            RETURNING report_id
+        `, [report_id]);
+
+        res.status(200).json({
+            success: true, 
+            result: data.rows[0]
+        });
+
+    }catch(error) {
+        console.log("Error in deleting user report");
+        res.status(500).json({
+            success: false,
+            error: error.message 
+        });
+    }
+});
+
+app.get("/reports/list-community-reports", async (req, res) => {
+    try {
+
+        const result = await pool.query(`
+            SELECT 
+                p.post_id,
+                p.user_id,
+                p.title,
+                p.content,
+                p.report_status,
+                p.resolved_type,
+                p.reviewed_at,
+
+                COUNT(pr.id_report)::INTEGER AS reports_count,
+
+                ARRAY_AGG(DISTINCT pr.reason) AS report_categories,
+
+                MAX(pr.created_at) AS last_reported_at,
+
+                CASE
+                    WHEN NOW() - MAX(pr.created_at) < INTERVAL '1 minute'
+                        THEN 'just now'
+
+                    WHEN NOW() - MAX(pr.created_at) < INTERVAL '1 hour'
+                        THEN EXTRACT(MINUTE FROM NOW() - MAX(pr.created_at))::int || 'm ago'
+
+                    WHEN NOW() - MAX(pr.created_at) < INTERVAL '1 day'
+                        THEN EXTRACT(HOUR FROM NOW() - MAX(pr.created_at))::int || 'h ago'
+
+                    WHEN NOW() - MAX(pr.created_at) < INTERVAL '1 week'
+                        THEN EXTRACT(DAY FROM NOW() - MAX(pr.created_at))::int || 'd ago'
+
+                    WHEN NOW() - MAX(pr.created_at) < INTERVAL '1 month'
+                        THEN FLOOR(EXTRACT(DAY FROM NOW() - MAX(pr.created_at)) / 7)::int || 'w ago'
+
+                    WHEN NOW() - MAX(pr.created_at) < INTERVAL '1 year'
+                        THEN FLOOR(EXTRACT(DAY FROM NOW() - MAX(pr.created_at)) / 30)::int || 'mon ago'
+
+                    ELSE
+                        EXTRACT(YEAR FROM AGE(NOW(), MAX(pr.created_at)))::int || ' años'
+                END AS reported_ago
+
+            FROM posts p
+
+            INNER JOIN post_reports pr
+                ON pr.post_id = p.post_id
+
+            WHERE p.report_status IS NOT NULL
+
+            GROUP BY
+                p.post_id,
+                p.user_id,
+                p.title,
+                p.content,
+                p.report_status,
+                p.resolved_type,
+                p.reviewed_at
+
+            ORDER BY MAX(pr.created_at) DESC
+        `);
+
+        const reports = result.rows;
+
+        // Obtener user_ids únicos
+        const uniqueUserIds = [
+            ...new Set(
+                reports
+                    .map((report) => report.user_id)
+                    .filter((id) => id != null)
+            )
+        ];
+
+        // Obtener perfiles
+        const profiles = await getProfilesByUserIds(uniqueUserIds);
+
+        // Crear mapa user_id -> username
+        const profileMap = new Map(
+            profiles.map((profile) => [
+                profile.user_id,
+                profile.username ||
+                    profile.first_name ||
+                    `User ${profile.user_id}`
+            ])
+        );
+
+        // Enriquecer respuesta
+        const enriched = reports.map((report) => ({
+            ...report,
+            user_name:
+                profileMap.get(report.user_id) ||
+                `User ${report.user_id}`
+        }));
+
+        res.status(200).json({
+            success: true,
+            result: enriched
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    }
+});
+
+
+app.get("/reports/count-critical-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM (
+                SELECT
+                    p.post_id,
+                    p.report_status,
+                    COUNT(pr.id_report)::INTEGER AS reports_count
+                FROM posts p
+                INNER JOIN post_reports pr
+                    ON pr.post_id = p.post_id
+                WHERE p.report_status IS NOT NULL
+                  AND p.is_deleted = FALSE
+                GROUP BY
+                    p.post_id,
+                    p.report_status
+            ) reported_posts
+            WHERE report_status = 'Critical'
+               OR reports_count >= 5
+        `);
+
+        res.status(200).json({
+            success: true,
+            result: {
+                total: result.rows[0].total
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/count-pending-reports", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM posts p
+            INNER JOIN post_reports pr
+                ON pr.post_id = p.post_id
+            WHERE p.report_status = 'Pending'
+              AND p.is_deleted = FALSE
+        `);
+
+        res.status(200).json({
+            success: true,
+            result: {
+                total: result.rows[0].total
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get("/reports/count-resolved-this-month", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT COUNT(*)::INTEGER AS total
+            FROM posts
+            WHERE report_status = 'Resolved'
+              AND reviewed_at >= DATE_TRUNC('month', NOW())
+              AND reviewed_at < DATE_TRUNC('month', NOW()) + INTERVAL '1 month'
+        `);
+
+        res.status(200).json({
+            success: true,
+            result: {
+                total: result.rows[0].total
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+
+app.post("/reports/create-post-report", async (req, res) => {
+    try {
+
+        const {
+            post_id,
+            reported_by_user_id,
+            reason
+        } = req.body;
+
+        // Validaciones básicas
+        if (!post_id || !reported_by_user_id || !reason) {
+            return res.status(400).json({
+                success: false,
+                error: "Missing required fields"
+            });
+        }
+
+        // Categorías válidas
+        const validReasons = [
+            "Spam / Misleading advertising",
+            "Offensive language / Harassment",
+            "Violence or harmful content",
+            "False information",
+            "Hate speech",
+            "Sexual content",
+            "Other"
+        ];
+
+        if (!validReasons.includes(reason)) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid report category"
+            });
+        }
+
+        // Verificar si ya reportó el post
+        const existingReport = await pool.query(`
+            SELECT id_report
+            FROM post_reports
+            WHERE post_id = $1
+              AND reported_by_user_id = $2
+            LIMIT 1
+        `, [post_id, reported_by_user_id]);
+
+        if (existingReport.rows.length > 0) {
+            return res.status(409).json({
+                success: false,
+                error: "You already reported this post"
+            });
+        }
+
+        await pool.query(`
+            INSERT INTO post_reports (
+                post_id,
+                reported_by_user_id,
+                reason,
+                created_at
+            )
+            VALUES (
+                $1,
+                $2,
+                $3,
+                NOW()
+            )
+        `, [
+            post_id,
+            reported_by_user_id,
+            reason
+        ]);
+
+        return res.status(201).json({
+            success: true,
+            message: "Post reported successfully"
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    }
+});
+
+app.patch("/reports/moderate-report", async (req, res) => {
+    try {
+
+        const {
+            post_id,
+            action
+        } = req.body;
+
+        if (!post_id || !action) {
+            return res.status(400).json({
+                success: false,
+                error: "Missing required fields"
+        });
+    }
+
+        switch(action) {
+
+            // Dismiss report
+            case "DISMISS_REPORT":
+
+                await pool.query(`
+                    UPDATE posts
+                    SET
+                        report_status = 'Resolved',
+                        resolved_type = 'Dismiss',
+                        reviewed_at = NOW()
+                    WHERE post_id = $1
+                `, [post_id]);
+
+                break;
+
+            // Delete post (soft delete)
+            case "DELETE_POST":
+
+                await pool.query(`
+                    UPDATE posts
+                    SET
+                        is_deleted = TRUE,
+                        report_status = 'Resolved',
+                        resolved_type = 'Delete',
+                        reviewed_at = NOW()
+                    WHERE post_id = $1
+                `, [post_id]);
+
+                break;
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Moderation action applied successfully"
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    }
+});
+
+
+
+
 
 
 app.listen(PORT, () => {

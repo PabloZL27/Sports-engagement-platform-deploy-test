@@ -3,9 +3,9 @@ import { Card } from "@heroui/react";
 import MembersPerWeekChart from "../reportsC/ChartCard";
 import StatsCard, { type StatsTrend } from "../reportsC/StatsCard";
 import SectionCard from "../reportsC/SectionCard";
-import PostsPerDayChart from "../reportsC/PostPerDayChart";
 import PostsByCategoryChart from "../reportsC/PostsByCatChart";
 import TopContributorsCard from "../reportsC/TopContributorsCard";
+import { MOCK_POSTS_PER_DAY } from "../reportsC/mockReportData";
 import {
   dashboardService,
   type TotalMembersStat,
@@ -15,6 +15,13 @@ import {
 
 import "../../styles/admin.css";
 import "../../styles/profile.css";
+
+function formatPostDayLabel(value: string | number): string {
+  return new Date(value).toLocaleDateString("es", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 function resolveStatsTrend(
   trend: StatsTrend | undefined,
@@ -151,10 +158,20 @@ export default function Dashboard() {
 
           <div className="two-col">
             <div className="background-chart">
-              <TopContributorsCard />
+              <MembersPerWeekChart
+                endpoint="/api/dashboard/stats/posts-per-day"
+                fallbackData={MOCK_POSTS_PER_DAY}
+                formatXValue={formatPostDayLabel}
+                height={240}
+                stroke="#4e83b7"
+                title="Posts Per Day"
+                tooltipLabel="Posts"
+                xKey="day"
+                yKey="total_posts"
+              />
             </div>
             <div className="background-chart">
-              <PostsPerDayChart />
+              <TopContributorsCard />
             </div>
           </div>
 

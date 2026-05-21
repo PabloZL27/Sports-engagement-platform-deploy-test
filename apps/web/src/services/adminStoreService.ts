@@ -1,13 +1,8 @@
 import type { AdminProduct } from "../types";
-
-const ADMIN_STORE_URL =
-  import.meta.env.VITE_ADMIN_STORE_URL || "/admin-store";
+import { apiFetch } from "./api";
 
 async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${ADMIN_STORE_URL}${path}`, options);
-  const data = await res.json();
-  if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP error ${res.status}`);
-  return data as T;
+  return apiFetch<T>(`/admin-store${path}`, options);
 }
 
 export async function getAdminProducts(): Promise<{ products: AdminProduct[] }> {

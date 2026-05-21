@@ -19,7 +19,7 @@ function formatPlaytime(seconds: number) {
   return `${minutes}m ${remainingSeconds}s`;
 }
 
-const COPY_CLASS = "m-0 text-sm leading-[1.5] text-[#49617f]";
+const COPY_CLASS = "m-0 text-[18px] leading-[1.5] text-[#49617f]";
 
 function WordleStats({
   entries,
@@ -45,9 +45,8 @@ function WordleStats({
   return (
     <section className="flex min-h-[360px] h-full flex-col justify-start gap-5 rounded-[14px] border border-[#d8dee5] bg-[#f5f8fb] p-6 text-[#0b2a55]">
       <div className="flex flex-col gap-1.5">
-        <p className="m-0 text-[12px] font-extrabold tracking-[0.12em] text-[#0f3d78]">TOP 5</p>
-        <h3 className="m-0 text-2xl font-extrabold">Leaderboard</h3>
-        <p className={COPY_CLASS}>
+        <h3 className="m-0 font-extrabold text-[32px]">Leaderboard</h3>
+        <p className="m-0 leading-[1.5] text-[#49617f] text-[20px]">
           {puzzleDate
             ? `Top 5 scores for ${puzzleDate}.`
             : "Top 5 scores for the day by attempts, time, and finish order."}
@@ -59,7 +58,7 @@ function WordleStats({
         {errorMessage ? <p className={COPY_CLASS}>{errorMessage}</p> : null}
 
         {!isLoading && !errorMessage && topEntries.length === 0 ? (
-          <p className={COPY_CLASS}>No scores for this puzzle yet.</p>
+          <p className="m-0 text-[18px] leading-[1.5] text-[#A5ACAF]">No scores for this puzzle yet.</p>
         ) : null}
 
         {topEntries.map((player) => (

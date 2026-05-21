@@ -195,3 +195,5 @@ services:
 
 networks:
   supabase_net:
+    external: true
+    name: ${SUPABASE_DOCKER_NETWORK}

@@ -1,0 +1,15 @@
+services:
+  cards-db:
+    image: postgres:16-alpine
+    container_name: cards-db-local
+    environment:
+      POSTGRES_USER: cards_svc
+      POSTGRES_PASSWORD: CardsSvc_2026_dev
+      POSTGRES_DB: cards_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - cards_data:/var/lib/postgresql/data
+
+volumes:
+  cards_data:

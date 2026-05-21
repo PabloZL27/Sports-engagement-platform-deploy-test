@@ -1,0 +1,17 @@
+{
+  "name": "news-service",
+  "version": "1.0.0",
+  "description": "News aggregation microservice for the sports engagement platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.20.0"
+  }
+}

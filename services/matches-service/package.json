@@ -5,9 +5,11 @@
   "type": "commonjs",
   "scripts": {
     "start": "node index.js",
-    "migrate": "node migrate.js"
+    "migrate": "node migrate.js",
+    "seed:matches": "node scripts/seedMatches.js"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^4.19.2",
     "pg": "^8.12.0"
   }

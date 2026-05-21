@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS matches (
-  id BIGSERIAL PRIMARY KEY,
-  opponent TEXT NOT NULL,
-  match_date TIMESTAMPTZ NOT NULL,
-  status TEXT NOT NULL DEFAULT 'upcoming'
-);

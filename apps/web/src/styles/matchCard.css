@@ -1,0 +1,20 @@
+.score-splash {
+  animation: scoreSplash 0.8s ease-out;
+}
+
+@keyframes scoreSplash {
+  0% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+
+  35% {
+    transform: scale(1.22);
+    text-shadow: 0 0 24px rgba(225, 29, 72, 0.75);
+  }
+
+  100% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+}

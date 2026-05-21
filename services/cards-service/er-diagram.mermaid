@@ -1,0 +1,59 @@
+erDiagram
+    athletes {
+        INT athlete_id PK
+        INT espn_athlete_id UK
+        VARCHAR display_name
+        DOUBLE weight
+        DOUBLE height
+        INT age
+        INT debut_year
+        VARCHAR position
+        INT jersey_num
+        VARCHAR headshot_url
+        BOOLEAN athlete_status
+        INT statistics_id FK
+    }
+
+    athlete_statistics {
+        INT id PK
+        INT athlete_id FK
+        INT espn_statistics_id
+        DOUBLE passes
+        INT p_yards
+        INT r_yards
+        INT interceptions
+        INT touchdowns
+        INT games_played
+    }
+
+    cards {
+        INT card_id PK
+        INT athlete_id FK
+        VARCHAR card_image
+        VARCHAR rarity
+    }
+
+    user_cards {
+        INT id PK
+        INT user_id
+        INT card_id FK
+        TIMESTAMP unlocked_at
+    }
+
+    user_packs {
+        INT id PK
+        INT user_id UK
+        INT packs_remaining
+    }
+
+    cards_sync_log {
+        INT id PK
+        VARCHAR source
+        TIMESTAMP sync_date
+        INT athletes_synced
+        VARCHAR status
+    }
+
+    athletes ||--o{ athlete_statistics : "has stats"
+    athletes ||--|| cards : "has card"
+    cards ||--o{ user_cards : "unlocked by"

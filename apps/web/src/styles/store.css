@@ -1,0 +1,37 @@
+.store-hero-title {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #0b2a4a;
+}
+@media (min-width: 768px) {
+  .store-hero-title {
+    font-size: 2.5rem;
+  }
+}
+.store-hero-subtitle {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #5b6475;
+}
+
+.store-hero-bar {
+  background: linear-gradient(90deg, #0b2a55 0%, #1d4e89 50%, #60a5fa 100%);
+  padding: 28px 32px;
+  border-radius: 28px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.store-hero-title--onblue {
+  color: #ffffff;
+}
+
+.store-hero-subtitle--onblue {
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}

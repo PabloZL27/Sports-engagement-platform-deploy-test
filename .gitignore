@@ -37,6 +37,8 @@ lerna-debug.log*
 *.sw?
 .DS_Store
 
+**/docker-compose.local.yml
+
 # TypeScript
 tsconfig.tsbuildinfo
 

@@ -1,0 +1,282 @@
+.admin-navbar {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px 16px 0 0;
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.admin-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.admin-navbar-actions {
+  flex-shrink: 0;
+}
+
+.admin-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.admin-logo-mark {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+
+.admin-brand {
+  color: #0b2a55;
+  font-size: 28px;
+  margin: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.admin-sidebar-card {
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  z-index: 10;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-section-card {
+  width: 100%;
+  border-radius: 30px;
+  background: #f7f8fc;
+  padding: 28px 30px 30px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.admin-section-card-header {
+  margin-bottom: 18px;
+}
+
+.admin-section-card-title {
+  margin: 0;
+  color: #13294b;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.admin-section-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.admin-section-card-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 18px;
+  border-bottom: 1px solid rgba(19, 41, 75, 0.08);
+  padding-bottom: 14px;
+}
+
+.admin-section-card-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.admin-section-card-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+}
+
+.admin-section-card-dot-green {
+  background: #27ae60;
+}
+
+.admin-section-card-dot-yellow {
+  background: #d4af37;
+}
+
+.admin-section-card-dot-navy {
+  background: #13294b;
+}
+
+.admin-section-card-dot-red {
+  background: #c44646;
+}
+
+.admin-section-card-text {
+  margin: 0;
+  color: #3d4c73;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.admin-section-card-username {
+  color: #13294b;
+  font-weight: 800;
+}
+
+.admin-section-card-time {
+  color: #b0bad1;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.horizontal-section {
+  margin-top: 16px;
+  background: #f7f8fc;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.background-chart {
+  background: #f7f8fc;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.admin-chart-card {
+  width: 100%;
+  padding: 28px 30px 30px;
+}
+
+.admin-chart-card-header {
+  margin-bottom: 14px;
+}
+
+.admin-chart-card-title {
+  margin: 0;
+  color: #13294b;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.admin-card-message {
+  margin: 0;
+  padding: 28px 30px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.admin-card-message-compact {
+  padding: 0;
+}
+
+.admin-card-message-error {
+  color: #c44646;
+}
+
+.admin-top-contributors-card {
+  width: 100%;
+  padding: 28px 30px 30px;
+}
+
+.admin-top-contributors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-top-contributors-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-top-contributors-rank {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e8eef8;
+  color: #13294b;
+  font-weight: 800;
+}
+
+.admin-top-contributors-item:first-child .admin-top-contributors-rank {
+  background: #3266ad;
+  color: #ffffff;
+}
+
+.admin-top-contributors-details {
+  min-width: 0;
+}
+
+.admin-top-contributors-name {
+  margin: 0;
+  color: #13294b;
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-top-contributors-meta {
+  margin: 3px 0 0;
+  color: #8a96ad;
+  font-size: 0.86rem;
+  line-height: 1.25;
+}
+
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-section-card {
+    padding: 24px 22px;
+  }
+
+  .admin-section-card-item {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 8px;
+    align-items: start;
+  }
+
+  .admin-section-card-time {
+    grid-column: 1;
+  }
+}

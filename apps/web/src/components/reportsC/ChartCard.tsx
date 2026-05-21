@@ -11,31 +11,50 @@ import {
 import { MOCK_MEMBER_STATS } from "./mockReportData";
 import "../../styles/admin.css";
 
-interface MemberStat {
-  month: string;
-  new_members: number;
+type ChartValue = string | number;
+
+interface ChartRow {
+  [key: string]: ChartValue;
 }
 
-interface MembersPerMonthResponse {
-  data?: MemberStat[];
+interface ChartResponse {
+  data?: ChartRow[];
 }
 
 interface Props {
-  data?: MemberStat[];
+  data?: ChartRow[];
   endpoint?: string;
   title?: string;
+  xKey?: string;
+  yKey?: string;
+  tooltipLabel?: string;
+  fallbackData?: ChartRow[];
+  height?: number;
+  stroke?: string;
+  formatXValue?: (value: ChartValue) => ChartValue;
+}
+
+function formatMonthLabel(value: ChartValue): ChartValue {
+  return new Date(value).toLocaleString("es", { month: "short", year: "2-digit" });
 }
 
 export default function MembersPerWeekChart({
   data: propData,
   endpoint,
   title = "New Members Per Month",
+  xKey = "month",
+  yKey = "new_members",
+  tooltipLabel = "Nuevos miembros",
+  fallbackData = MOCK_MEMBER_STATS,
+  height = 260,
+  stroke = "#3266ad",
+  formatXValue = formatMonthLabel,
 }: Props) {
   const hasPropData = Boolean(propData?.length);
-  const [data, setData] = useState<MemberStat[]>(hasPropData ? propData! : MOCK_MEMBER_STATS);
+  const [data, setData] = useState<ChartRow[]>(hasPropData ? propData! : fallbackData);
   const [loading, setLoading] = useState<boolean>(!hasPropData);
 
-  function normalizeRows(payload: MemberStat[] | MembersPerMonthResponse): MemberStat[] {
+  function normalizeRows(payload: ChartRow[] | ChartResponse): ChartRow[] {
     const rows = Array.isArray(payload) ? payload : payload.data;
 
     if (!Array.isArray(rows)) {
@@ -43,8 +62,9 @@ export default function MembersPerWeekChart({
     }
 
     return rows.map((row) => ({
-      month: new Date(row.month).toLocaleString("es", { month: "short", year: "2-digit" }),
-      new_members: Number(row.new_members),
+      ...row,
+      [xKey]: formatXValue(row[xKey]),
+      [yKey]: Number(row[yKey]),
     }));
   }
 
@@ -64,24 +84,24 @@ export default function MembersPerWeekChart({
         }
         return r.json();
       })
-      .then((payload: MemberStat[] | MembersPerMonthResponse) => {
+      .then((payload: ChartRow[] | ChartResponse) => {
         if (!isMounted) return;
 
         const formatted = normalizeRows(payload);
 
-        setData(formatted.length > 0 ? formatted : MOCK_MEMBER_STATS);
+        setData(formatted.length > 0 ? formatted : fallbackData);
         setLoading(false);
       })
       .catch(() => {
         if (!isMounted) return;
-        setData(MOCK_MEMBER_STATS);
+        setData(fallbackData);
         setLoading(false);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [endpoint, hasPropData, propData]);
+  }, [endpoint, fallbackData, formatXValue, hasPropData, propData, xKey, yKey]);
 
   if (loading) return <p style={{ color: "#888", fontSize: 14 }}>Cargando...</p>;
 
@@ -91,11 +111,11 @@ export default function MembersPerWeekChart({
         <h3 className="admin-chart-card-title">{title}</h3>
       </div>
 
-      <ResponsiveContainer width="100%" height={260}>
+      <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.07)" />
           <XAxis
-            dataKey="month"
+            dataKey={xKey}
             tick={{ fontSize: 12, fill: "#888" }}
             axisLine={false}
             tickLine={false}
@@ -109,14 +129,14 @@ export default function MembersPerWeekChart({
           <Tooltip
             contentStyle={{ fontSize: 13, borderRadius: 8, border: "0.5px solid #e0e0e0" }}
             labelStyle={{ fontWeight: 500 }}
-            formatter={(v) => [v, "Nuevos miembros"]}
+            formatter={(v) => [v, tooltipLabel]}
           />
           <Line
             type="monotone"
-            dataKey="new_members"
-            stroke="#3266ad"
+            dataKey={yKey}
+            stroke={stroke}
             strokeWidth={2}
-            dot={{ r: 4, fill: "#3266ad", strokeWidth: 0 }}
+            dot={{ r: 4, fill: stroke, strokeWidth: 0 }}
             activeDot={{ r: 6 }}
           />
         </LineChart>

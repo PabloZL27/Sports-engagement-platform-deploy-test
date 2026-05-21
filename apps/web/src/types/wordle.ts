@@ -7,6 +7,11 @@ export interface WordleConfig {
   wordLength: number;
 }
 
+export interface WordleDictionaryResponse {
+  answerWords: string[];
+  generalWords: string[];
+}
+
 export interface WordleLeaderboardEntry {
   leaderboardId: number;
   gameId: number;

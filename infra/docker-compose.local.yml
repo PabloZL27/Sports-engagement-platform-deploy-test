@@ -60,3 +60,7 @@ services:
     environment:
       COMMUNITY_SERVICE_URL: http://icarus-community:4001
       PROFILE_SERVICE_URL: http://icarus-profile:4006
+
+  war-room-service:
+    environment:
+      WAR_ROOM_DB_URL: postgresql://war_room_svc:WarRoomSvc_2026_dev@host.docker.internal:15432/war_room_db

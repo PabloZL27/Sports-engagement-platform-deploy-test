@@ -579,6 +579,35 @@ app.post("/new/user", async (req, res) => {
     }
 
     const result = await pool.query(`
+      WITH input AS (
+        SELECT
+          $1::uuid AS user_id,
+          $2::text AS country,
+          $3::text AS first_name,
+          $4::text AS last_name,
+          NULLIF($5::text, '') AS requested_username,
+          $6::text AS avatar_url
+      ),
+      normalized AS (
+        SELECT
+          user_id,
+          country,
+          first_name,
+          last_name,
+          CASE
+            WHEN requested_username IS NULL THEN 'user_' || SUBSTRING(REPLACE(user_id::text, '-', ''), 1, 8)
+            WHEN EXISTS (
+              SELECT 1
+              FROM accounts
+              WHERE username = requested_username
+                AND user_id <> input.user_id
+            )
+              THEN requested_username || '_' || SUBSTRING(REPLACE(user_id::text, '-', ''), 1, 8)
+            ELSE requested_username
+          END AS username,
+          avatar_url
+        FROM input
+      )
       INSERT INTO accounts (
         user_id,
         country,
@@ -587,7 +616,21 @@ app.post("/new/user", async (req, res) => {
         username,
         avatar_url
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      SELECT
+        user_id,
+        country,
+        first_name,
+        last_name,
+        username,
+        avatar_url
+      FROM normalized
+      ON CONFLICT (user_id) DO UPDATE
+      SET
+        country = COALESCE(accounts.country, EXCLUDED.country),
+        first_name = COALESCE(accounts.first_name, EXCLUDED.first_name),
+        last_name = COALESCE(accounts.last_name, EXCLUDED.last_name),
+        avatar_url = COALESCE(NULLIF(accounts.avatar_url, ''), EXCLUDED.avatar_url),
+        updated_at = NOW()
       RETURNING
         account_id,
         user_id,
@@ -608,7 +651,7 @@ app.post("/new/user", async (req, res) => {
       avatar_url ?? null
     ]);
 
-    res.status(201).json({
+    res.status(200).json({
       status: "success",
       new_user: result.rows[0]
     });

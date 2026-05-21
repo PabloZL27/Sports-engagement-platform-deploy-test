@@ -1,3 +1,5 @@
+import { FiMic, FiSquare } from "react-icons/fi";
+
 interface MicButtonProps {
   isActive: boolean;
   onClick: () => void;
@@ -6,14 +8,22 @@ interface MicButtonProps {
 function MicButton({ isActive, onClick }: MicButtonProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`px-6 py-3 rounded-full text-white font-bold text-lg transition-colors duration-200 ${
-        isActive
-          ? "bg-red-600 hover:bg-red-700"
-          : "bg-blue-900 hover:bg-blue-800"
-      }`}
+      className="flex items-center gap-2 rounded-full px-8 py-3 text-[14px] font-medium text-white transition-colors"
+      style={{ backgroundColor: isActive ? "#7f1d1d" : "#0C2340" }}
     >
-      {isActive ? "End Session" : "Start Session"}
+      {isActive ? (
+        <>
+          <FiSquare className="h-4 w-4 shrink-0" aria-hidden />
+          Stop Talking
+        </>
+      ) : (
+        <>
+          <FiMic className="h-4 w-4 shrink-0" aria-hidden />
+          Start Talking
+        </>
+      )}
     </button>
   );
 }

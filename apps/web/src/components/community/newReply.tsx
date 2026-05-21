@@ -2,6 +2,7 @@ import { Button, Form, Label, TextArea } from "@heroui/react";
 import React, { useState } from "react";
 import { Auth } from "../../context/AuthContext";
 import { createComment } from "../../services/communityService";
+import { supabase } from "../../supabaseClient";
 import type { Comment } from "../../types/community";
 
 interface NewReplyProps {
@@ -20,7 +21,11 @@ const NewReply = ({ postId, onSuccess, onCancel }: NewReplyProps) => {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		if (!session?.user?.id) {
+		const currentUserId =
+			session?.user?.id ||
+			(await supabase.auth.getSession()).data.session?.user?.id;
+
+		if (!currentUserId) {
 			console.error("Missing user id in session");
 			return;
 		}
@@ -32,7 +37,7 @@ const NewReply = ({ postId, onSuccess, onCancel }: NewReplyProps) => {
 			setLoading(true);
 			const newComments = await createComment({
 				post_id: postId,
-				user_id: session.user.id,
+				user_id: currentUserId,
 				content: trimmed
 			});
 

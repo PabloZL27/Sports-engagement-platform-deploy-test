@@ -16,6 +16,7 @@ services:
       - history-service
       - cards-service
       - offseason-service
+      - war-room-service
       - news-service
       - feedback-service
       - admin-store-service
@@ -178,6 +179,20 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+    networks:
+      - supabase_net
+
+  war-room-service:
+    build:
+      context: ../services/war-room-service
+    container_name: icarus-war-room
+    environment:
+      PORT: 4014
+      WAR_ROOM_DB_URL: ${WAR_ROOM_DB_URL}
+      PROFILE_SERVICE_URL: http://icarus-profile:4006
+      CARDS_SERVICE_URL: http://icarus-cards:4009
+    ports:
+      - "4014:4014"
     networks:
       - supabase_net
 

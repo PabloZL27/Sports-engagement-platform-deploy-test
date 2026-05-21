@@ -4,13 +4,15 @@ type ReportPostProps = {
   username?: string;
   severity?: ReportSeverity;
   timeAgo?: string;
-  title?: string | null;
   meta?: string;
+  title?: string;
   content?: string | null;
   reportReason?: string | null;
+  
   reportedByCount?: number;
   primaryActionLabel?: string;
   secondaryActionLabel?: string;
+  isDisabled?: boolean;
   onRemovePost?: () => void;
   onDismiss?: () => void;
   onOpenDetails?: () => void;
@@ -39,6 +41,7 @@ function ReportPost({
   reportedByCount,
   primaryActionLabel = "Remove post",
   secondaryActionLabel = "Dismiss",
+  isDisabled = false,
   onRemovePost,
   onDismiss,
   onOpenDetails,
@@ -128,21 +131,23 @@ function ReportPost({
       <div className="mt-4 flex flex-wrap gap-3">
         <button
           type="button"
+          disabled={isDisabled}
           onClick={(event) => {
             event.stopPropagation();
             onRemovePost?.();
           }}
-          className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[16px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
+          className="rounded-[12px] border-2 border-[#c61d1d] bg-white px-5 py-2.5 text-[16px] font-extrabold leading-none text-[#c61d1d] transition hover:border-[#c61d1d] hover:bg-[#c61d1d] hover:text-white disabled:cursor-not-allowed disabled:border-[#d7dce6] disabled:bg-[#f3f4f6] disabled:text-[#a5aec4] disabled:hover:border-[#d7dce6] disabled:hover:bg-[#f3f4f6]"
         >
           {primaryActionLabel}
         </button>
         <button
           type="button"
+          disabled={isDisabled}
           onClick={(event) => {
             event.stopPropagation();
             onDismiss?.();
           }}
-          className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[16px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] "
+          className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[16px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] disabled:cursor-not-allowed disabled:bg-[#f3f4f6] disabled:text-[#a5aec4] disabled:hover:border-[#d7dce6] disabled:hover:bg-[#f3f4f6]"
         >
           {secondaryActionLabel}
         </button>

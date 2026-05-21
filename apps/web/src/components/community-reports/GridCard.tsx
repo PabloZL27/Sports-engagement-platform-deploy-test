@@ -26,6 +26,11 @@ function GridCard({
           <span>{description}</span>
         </div>
       </div>
+      <footer className="min-w-0 mt-2">
+        <h3 className="m-0 w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[20px] font-extrabold uppercase tracking-[0.08em] text-[#98A2B3]">
+          {title1}
+        </h3>
+      </footer>
     </article>
   );
 }

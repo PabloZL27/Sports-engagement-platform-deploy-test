@@ -22,6 +22,10 @@ export interface ApiMatch {
 
   home_score?: number | null;
   away_score?: number | null;
+
+  demo_eligible?: boolean;
+  demo_active?: boolean;
+  demo_clock_label?: string;
 }
 
 export interface Match {

@@ -29,6 +29,33 @@ type UpdateReportResponse = {
   result: UserReport;
 };
 
+export type CreateUserReportPayload = {
+  user_id: string;
+  reported_by_user_id: string;
+  reason: string;
+  content: string;
+};
+
+type CreateReportResponse = {
+  success: boolean;
+  result: UserReport;
+};
+
+export async function createUserReport(
+  payload: CreateUserReportPayload,
+): Promise<UserReport> {
+  const data = await apiFetch<CreateReportResponse>(
+    "/reports/user/create-report",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  return data.result;
+}
+
 export async function listUserReports(): Promise<UserReport[]> {
   const data = await apiFetch<ListReportsResponse>(
     "/reports/user/list-reports",

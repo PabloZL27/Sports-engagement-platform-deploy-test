@@ -7,6 +7,13 @@ export type ChatMessageRow = {
   content: string;
   sent_at: string;
   display_name?: string | null;
+  avatar_url?: string | null;
+};
+
+export type ChatParticipantRow = {
+  user_id: string;
+  display_name?: string | null;
+  last_message_at: string;
 };
 
 export async function bootstrapMatchRoom(
@@ -27,11 +34,18 @@ export async function getMatchMessages(
   return apiFetch(`/api/rooms/match/${matchId}/messages?limit=${limit}`);
 }
 
+export async function getMatchParticipants(
+  matchId: number,
+): Promise<{ participants: ChatParticipantRow[] }> {
+  return apiFetch(`/api/rooms/match/${matchId}/participants`);
+}
+
 export async function postMatchMessage(
   matchId: number,
   userId: string,
   content: string,
-  displayName?: string | null
+  displayName?: string | null,
+  avatarUrl?: string | null,
 ): Promise<{ message: ChatMessageRow }> {
   return apiFetch(`/api/rooms/match/${matchId}/messages`, {
     method: "POST",
@@ -41,6 +55,9 @@ export async function postMatchMessage(
       content,
       ...(displayName != null && String(displayName).trim() !== ""
         ? { display_name: String(displayName).trim() }
+        : {}),
+      ...(avatarUrl != null && String(avatarUrl).trim() !== ""
+        ? { avatar_url: String(avatarUrl).trim() }
         : {}),
     }),
   });

@@ -58,7 +58,9 @@ services:
     environment:
       PORT: 4003
       ROOMS_DB_URL: postgresql://rooms_svc:RoomsSvc_2026_dev@host.docker.internal:15432/rooms_db
-      ROOMS_CHAT_PRUNE_INTERVAL_MS: "120000"
+      ROOMS_CHAT_MESSAGE_MAX_AGE_MS: "1800000"
+      ROOMS_CHAT_PRUNE_INTERVAL_MS: "1800000"
+      ROOMS_CHAT_PRUNE_CHECK_INTERVAL_MS: "120000"
     networks:
       - supabase_net
 

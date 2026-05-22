@@ -1,9 +1,11 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import MatchesPage from "./pages/MatchesPage";
 import MatchRoomPage from "./pages/MatchRoomPage";
 import StorePage from "./pages/StorePage";
 import PaySuccess from "./pages/paySuccess";
 import OffSeasonPage from "./pages/OffSeasonPage";
+import WarRoomLobbyPage from "./pages/WarRoomLobbyPage";
+import WarRoomGamePage from "./pages/WarRoomGamePage";
 import TeamPage from "./pages/TeamPage";
 import HistoryPage from "./pages/HistoryPage";
 import VoiceAgent from "./components/VoiceAgent/VoiceAgent";
@@ -23,6 +25,8 @@ import { Auth } from "./context/AuthContext";
 
 function App() {
   const { session } = Auth();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <CartProvider>
@@ -122,6 +126,26 @@ function App() {
             }
           />
           <Route
+            path="/war-room"
+            element={
+              <UserRoute>
+                <PrivateRoute>
+                  <WarRoomLobbyPage />
+                </PrivateRoute>
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/war-room/:matchId"
+            element={
+              <UserRoute>
+                <PrivateRoute>
+                  <WarRoomGamePage />
+                </PrivateRoute>
+              </UserRoute>
+            }
+          />
+          <Route
             path="/voice-agent"
             element={
               <UserRoute>
@@ -146,7 +170,7 @@ function App() {
             }
           />
         </Routes>
-        {session ? <FeedbackDrawer /> : null}
+        {session && !isAdminRoute ? <FeedbackDrawer /> : null}
       </>
     </CartProvider>
   );

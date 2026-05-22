@@ -6,10 +6,18 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4003;
 
-/** Cada cuánto borrar el mensaje más antiguo por partido (ms). Por defecto 2 minutos. */
-const CHAT_PRUNE_INTERVAL_MS = Math.max(
+/** Antigüedad mínima de un mensaje antes de borrarlo (ms). Por defecto 30 minutos. */
+const CHAT_MESSAGE_MAX_AGE_MS = Math.max(
+  60_000,
+  parseInt(process.env.ROOMS_CHAT_MESSAGE_MAX_AGE_MS || "", 10) ||
+    parseInt(process.env.ROOMS_CHAT_PRUNE_INTERVAL_MS || "", 10) ||
+    1_800_000,
+);
+
+/** Cada cuánto ejecutar la limpieza (ms). Por defecto 1 minuto. */
+const CHAT_PRUNE_CHECK_INTERVAL_MS = Math.max(
   30_000,
-  parseInt(process.env.ROOMS_CHAT_PRUNE_INTERVAL_MS || "", 10) || 120_000
+  parseInt(process.env.ROOMS_CHAT_PRUNE_CHECK_INTERVAL_MS || "", 10) || 60_000,
 );
 
 const UUID_RE =
@@ -35,28 +43,77 @@ const pool = new Pool({
   connectionString: process.env.ROOMS_DB_URL,
 });
 
-async function deleteOldestMessagePerMatchRoom() {
+function parseAvatarUrl(value) {
+  if (value == null) return null;
+  const s = String(value).trim().slice(0, 500);
+  if (!s.startsWith("http://") && !s.startsWith("https://")) return null;
+  return s;
+}
+
+async function ensureChatSchema() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chat_participants (
+      room_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      display_name VARCHAR(80),
+      last_message_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (room_id, user_id)
+    )
+  `);
+
+  await pool.query(`
+    INSERT INTO chat_participants (room_id, user_id, display_name, last_message_at)
+    SELECT
+      m.room_id,
+      m.user_id,
+      (
+        SELECT m2.display_name
+        FROM chat_messages m2
+        WHERE m2.room_id = m.room_id
+          AND m2.user_id = m.user_id
+          AND m2.display_name IS NOT NULL
+          AND TRIM(m2.display_name) <> ''
+        ORDER BY m2.sent_at DESC, m2.id DESC
+        LIMIT 1
+      ) AS display_name,
+      MAX(m.sent_at) AS last_message_at
+    FROM chat_messages m
+    GROUP BY m.room_id, m.user_id
+    ON CONFLICT (room_id, user_id) DO NOTHING
+  `);
+
+  await pool.query(`
+    ALTER TABLE chat_messages
+    ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500)
+  `);
+}
+
+async function upsertChatParticipant(roomId, userId, displayName) {
+  await pool.query(
+    `INSERT INTO chat_participants (room_id, user_id, display_name, last_message_at)
+     VALUES ($1, $2, $3, NOW())
+     ON CONFLICT (room_id, user_id)
+     DO UPDATE SET
+       last_message_at = NOW(),
+       display_name = COALESCE(EXCLUDED.display_name, chat_participants.display_name)`,
+    [roomId, userId, displayName]
+  );
+}
+
+async function deleteExpiredChatMessages() {
   try {
-    const r = await pool.query(`
+    const r = await pool.query(
+      `
       DELETE FROM chat_messages m
-      WHERE m.id IN (
-        SELECT id FROM (
-          SELECT m2.id,
-            ROW_NUMBER() OVER (
-              PARTITION BY c.match_id
-              ORDER BY m2.sent_at ASC, m2.id ASC
-            ) AS rn
-          FROM chat_messages m2
-          INNER JOIN chatrooms c ON c.room_id = m2.room_id
-        ) oldest
-        WHERE oldest.rn = 1
-      )
-    `);
+      WHERE m.sent_at < NOW() - ($1::float8 * INTERVAL '1 millisecond')
+      `,
+      [CHAT_MESSAGE_MAX_AGE_MS],
+    );
     if (r.rowCount > 0) {
       console.log(
         "chat prune: eliminado(s)",
         r.rowCount,
-        "mensaje(s) más antiguo(s) (uno por partido con chat)"
+        `mensaje(s) con más de ${CHAT_MESSAGE_MAX_AGE_MS / 1000}s de antigüedad`,
       );
     }
   } catch (e) {
@@ -64,7 +121,7 @@ async function deleteOldestMessagePerMatchRoom() {
   }
 }
 
-setInterval(deleteOldestMessagePerMatchRoom, CHAT_PRUNE_INTERVAL_MS);
+setInterval(deleteExpiredChatMessages, CHAT_PRUNE_CHECK_INTERVAL_MS);
 
 async function getRoomIdByMatch(matchId) {
   const r = await pool.query(
@@ -146,7 +203,7 @@ app.get("/match/:matchId/messages", async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 100, 500);
   try {
     const result = await pool.query(
-      `SELECT m.id, m.room_id, m.user_id, m.content, m.sent_at, m.display_name
+      `SELECT m.id, m.room_id, m.user_id, m.content, m.sent_at, m.display_name, m.avatar_url
        FROM chat_messages m
        INNER JOIN chatrooms c ON c.room_id = m.room_id
        WHERE c.match_id = $1
@@ -166,6 +223,7 @@ app.post("/match/:matchId/messages", async (req, res) => {
   const userId = parseUuidUserId(req.body?.user_id);
   const content = (req.body?.content || "").trim().slice(0, 500);
   const displayName = parseDisplayName(req.body?.display_name);
+  const avatarUrl = parseAvatarUrl(req.body?.avatar_url);
 
   if (!Number.isFinite(matchId) || userId == null) {
     return res.status(400).json({
@@ -185,11 +243,12 @@ app.post("/match/:matchId/messages", async (req, res) => {
     }
 
     const ins = await pool.query(
-      `INSERT INTO chat_messages (room_id, user_id, content, display_name)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, room_id, user_id, content, sent_at, display_name`,
-      [roomId, userId, content, displayName]
+      `INSERT INTO chat_messages (room_id, user_id, content, display_name, avatar_url)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, room_id, user_id, content, sent_at, display_name, avatar_url`,
+      [roomId, userId, content, displayName, avatarUrl]
     );
+    await upsertChatParticipant(roomId, userId, displayName);
     res.status(201).json({ message: ins.rows[0] });
   } catch (error) {
     console.error("messages insert", error);
@@ -197,9 +256,39 @@ app.post("/match/:matchId/messages", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.get("/match/:matchId/participants", async (req, res) => {
+  const matchId = parseInt(req.params.matchId, 10);
+  if (!Number.isFinite(matchId)) {
+    return res.status(400).json({ error: "match_id inválido" });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT p.user_id, p.display_name, p.last_message_at
+       FROM chat_participants p
+       INNER JOIN chatrooms c ON c.room_id = p.room_id
+       WHERE c.match_id = $1
+       ORDER BY p.last_message_at DESC`,
+      [matchId]
+    );
+    res.json({ participants: result.rows });
+  } catch (error) {
+    console.error("participants list", error);
+    res.status(500).json({
+      error: error.message || "Error al listar participantes",
+    });
+  }
+});
+
+app.listen(PORT, async () => {
+  try {
+    await ensureChatSchema();
+    console.log("chat schema ready");
+  } catch (e) {
+    console.error("chat schema init failed", e);
+  }
   console.log(`rooms-service listening on port ${PORT}`);
   console.log(
-    `chat prune: cada ${CHAT_PRUNE_INTERVAL_MS / 1000}s se elimina el mensaje más antiguo por partido`
+    `chat prune: cada ${CHAT_PRUNE_CHECK_INTERVAL_MS / 1000}s se eliminan mensajes con más de ${CHAT_MESSAGE_MAX_AGE_MS / 1000}s`,
   );
 });

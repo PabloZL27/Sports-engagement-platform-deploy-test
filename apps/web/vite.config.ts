@@ -32,6 +32,10 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/api/, ""),
         },
+        "/admin-store": {
+          target: proxyTarget,
+          changeOrigin: true,
+        },
       },
     },
   };

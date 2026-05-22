@@ -21,3 +21,28 @@ export async function getMyProfile(accessToken: string): Promise<{status: string
     }
   });
 }
+
+type BatchProfileRow = {
+  user_id: string;
+  avatar_url?: string | null;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+};
+
+export async function getProfilesBatch(
+  userIds: string[],
+): Promise<BatchProfileRow[]> {
+  if (userIds.length === 0) return [];
+
+  const data = await apiFetch<{ status: string; profiles: BatchProfileRow[] }>(
+    "/profile/profiles/batch",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profiles_ids: userIds }),
+    },
+  );
+
+  return data.profiles ?? [];
+}

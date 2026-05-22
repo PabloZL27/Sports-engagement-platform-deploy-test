@@ -16,10 +16,12 @@ services:
       - history-service
       - cards-service
       - offseason-service
+      - war-room-service
       - news-service
       - feedback-service
       - admin-store-service
       - dashboard-service
+      - reports-service
     networks:
       - supabase_net
 
@@ -31,6 +33,8 @@ services:
       PORT: 4001
       PROFILE_SERVICE_URL: http://profile-service:4006
       COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@supabase-db:5432/community_db
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
     ports:
       - "4001:4001"
     networks:
@@ -55,7 +59,9 @@ services:
     environment:
       PORT: 4003
       ROOMS_DB_URL: postgresql://rooms_svc:RoomsSvc_2026_dev@host.docker.internal:15432/rooms_db
-      ROOMS_CHAT_PRUNE_INTERVAL_MS: "120000"
+      ROOMS_CHAT_MESSAGE_MAX_AGE_MS: "1800000"
+      ROOMS_CHAT_PRUNE_INTERVAL_MS: "1800000"
+      ROOMS_CHAT_PRUNE_CHECK_INTERVAL_MS: "120000"
     networks:
       - supabase_net
 
@@ -179,6 +185,20 @@ services:
     networks:
       - supabase_net
 
+  war-room-service:
+    build:
+      context: ../services/war-room-service
+    container_name: icarus-war-room
+    environment:
+      PORT: 4014
+      WAR_ROOM_DB_URL: ${WAR_ROOM_DB_URL}
+      PROFILE_SERVICE_URL: http://icarus-profile:4006
+      CARDS_SERVICE_URL: http://icarus-cards:4009
+    ports:
+      - "4014:4014"
+    networks:
+      - supabase_net
+
   dashboard-service:
     build:
       context: ../services/dashboard-service
@@ -190,6 +210,19 @@ services:
       STORE_SERVICE_URL: http://icarus-store:4005
     ports:
       - "4015:4015"
+    networks:
+      - supabase_net
+  
+  reports-service:
+    build:
+      context: ../services/reports-service
+    container_name: icarus-reports
+    environment:
+      PORT: 4016
+      COMMUNITY_SERVICE_URL: http://icarus-community:4001
+      PROFILE_SERVICE_URL: http://icarus-profile:4006
+    ports:
+      - "4016:4016"
     networks:
       - supabase_net
 

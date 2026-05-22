@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { wordleWords } from "../data/wordleWords";
 
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
@@ -16,6 +15,7 @@ export type WordleBoard = WordleTile[][];
 export type WordleKeyboardStatus = Record<string, WordleTileStatus>;
 
 interface UseWordleOptions {
+  answerWords?: string[];
   puzzleDate?: string;
   onGameFinished?: (payload: {
     attemptCount: number;
@@ -39,16 +39,20 @@ function resolvePuzzleDate(puzzleDate?: string): string {
   return puzzleDate || new Date().toISOString().slice(0, 10);
 }
 
-function pickDailyWord(puzzleDate?: string): string {
+function pickDailyWord(puzzleDate?: string, answerWords: string[] = []): string {
+  if (answerWords.length === 0) {
+    return "";
+  }
+
   const seed = resolvePuzzleDate(puzzleDate);
   let hash = 0;
 
   for (const character of seed) {
-    hash = (hash * 31 + character.charCodeAt(0)) % wordleWords.length;
+    hash = (hash * 31 + character.charCodeAt(0)) % answerWords.length;
   }
 
-  const index = Math.abs(hash) % wordleWords.length;
-  return wordleWords[index];
+  const index = Math.abs(hash) % answerWords.length;
+  return answerWords[index];
 }
 
 const statusPriority: Record<WordleTileStatus, number> = {
@@ -93,7 +97,8 @@ function evaluateGuess(guess: string, targetWord: string): WordleTile[] {
 export function useWordle(options: UseWordleOptions = {}) {
   const onGameFinished = options.onGameFinished;
   const activePuzzleDate = resolvePuzzleDate(options.puzzleDate);
-  const [targetWord, setTargetWord] = useState<string>(() => pickDailyWord(activePuzzleDate));
+  const answerWords = options.answerWords ?? [];
+  const [targetWord, setTargetWord] = useState<string>(() => pickDailyWord(activePuzzleDate, answerWords));
   const [currentGuess, setCurrentGuess] = useState("");
   const [board, setBoard] = useState<WordleBoard>(() => buildEmptyBoard());
   const [attempt, setAttempt] = useState(0);
@@ -101,13 +106,13 @@ export function useWordle(options: UseWordleOptions = {}) {
   const [message, setMessage] = useState("Guess the 5-letter word");
 
   useEffect(() => {
-    setTargetWord(pickDailyWord(activePuzzleDate));
+    setTargetWord(pickDailyWord(activePuzzleDate, answerWords));
     setCurrentGuess("");
     setBoard(buildEmptyBoard());
     setAttempt(0);
     setGameStatus("playing");
     setMessage("Guess the 5-letter word");
-  }, [activePuzzleDate]);
+  }, [activePuzzleDate, answerWords]);
 
   const keyboardStatus = useMemo<WordleKeyboardStatus>(() => {
     const map: WordleKeyboardStatus = {};
@@ -131,6 +136,11 @@ export function useWordle(options: UseWordleOptions = {}) {
   const handleInput = useCallback(
     (key: string) => {
       if (gameStatus !== "playing") {
+        return;
+      }
+
+      if (!targetWord) {
+        setMessage("Word list unavailable.");
         return;
       }
 
@@ -202,13 +212,13 @@ export function useWordle(options: UseWordleOptions = {}) {
   );
 
   const resetGame = useCallback(() => {
-    setTargetWord(pickDailyWord(activePuzzleDate));
+    setTargetWord(pickDailyWord(activePuzzleDate, answerWords));
     setCurrentGuess("");
     setBoard(buildEmptyBoard());
     setAttempt(0);
     setGameStatus("playing");
     setMessage("New game started");
-  }, [activePuzzleDate]);
+  }, [activePuzzleDate, answerWords]);
 
   const visibleBoard = useMemo(() => {
     return board.map((row, rowIndex) => {

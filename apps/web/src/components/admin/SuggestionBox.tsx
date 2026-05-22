@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import { getFeedbackList } from "../../services/feedbackService";
 import type { FeedbackRecord } from "../../services/feedbackService";
 
-const NAVY = "#0d1f3c";
-const LABEL_COLOR = "#9aa3b2";
-
 type CategoryKey = "bug" | "cards" | "feature" | "other";
 type FilterKey = "all" | CategoryKey;
 
@@ -16,11 +13,11 @@ function getCategoryKey(category: string): CategoryKey {
   return "other";
 }
 
-const catBadgeStyle: Record<CategoryKey, React.CSSProperties> = {
-  cards: { background: "#e8edf8", color: "#3a5fa0" },
-  bug: { background: "#fde8e8", color: "#a03a3a" },
-  feature: { background: "#e8f4ec", color: "#2e7a4a" },
-  other: { background: "#ebebeb", color: "#555" },
+const catBadgeClass: Record<CategoryKey, string> = {
+  cards: "bg-[#e8edf8] text-[#3a5fa0]",
+  bug: "bg-[#fde8e8] text-[#a03a3a]",
+  feature: "bg-[#e8f4ec] text-[#2e7a4a]",
+  other: "bg-[#ebebeb] text-[#555]",
 };
 
 const catLabel: Record<CategoryKey, string> = {
@@ -47,42 +44,15 @@ function isThisWeek(iso: string): boolean {
   return diffMs < 7 * 24 * 60 * 60 * 1000;
 }
 
-const badge: React.CSSProperties = {
-  fontSize: 10, fontWeight: 700, letterSpacing: 0.6,
-  padding: "3px 9px", borderRadius: 10, textTransform: "uppercase",
-};
-
-const s: Record<string, React.CSSProperties> = {
-  pageTitle: { fontSize: 22, fontWeight: 800, color: NAVY, textTransform: "uppercase", letterSpacing: 1, margin: 0 },
-  pageSubtitle: { fontSize: 13, color: LABEL_COLOR, marginTop: 4, marginBottom: 16 },
-  statsGrid: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 16 },
-  statCard: { background: "#f8f9fc", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 6 },
-  statLabel: { fontSize: 11, fontWeight: 600, color: LABEL_COLOR, textTransform: "uppercase", letterSpacing: 0.8 },
-  statValue: { fontSize: 28, fontWeight: 800, color: NAVY },
-  card: { background: "#fff", borderRadius: 14, padding: 20 },
-  filtersRow: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 },
-  sugCard: { display: "flex", gap: 16, alignItems: "flex-start", padding: 16, background: "#f8f9fc", borderRadius: 12 },
-  sugLeft: { flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 },
-  sugTop: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" },
-  sugTitle: { fontSize: 14, fontWeight: 700, color: NAVY },
-  sugBody: { fontSize: 13, color: "#5a6278", lineHeight: 1.55 },
-  sugFooter: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, marginTop: 4 },
-  sugTime: { fontSize: 11, color: "#b0b8cc", marginLeft: "auto" },
-  imgPlaceholder: { width: 110, height: 90, borderRadius: 10, background: "#eef0f5", border: "1.5px dashed #d0d4e0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, color: "#b0b8cc", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 },
-};
-
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 600,
-        cursor: "pointer", border: "1.5px solid",
-        borderColor: active ? NAVY : "#d0d4e0",
-        background: active ? NAVY : "#fff",
-        color: active ? "#fff" : "#3a4560",
-        transition: "all .15s",
-      }}
+      className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+        active
+          ? "border-[#0d1f3c] bg-[#0d1f3c] text-white"
+          : "border-[#d0d4e0] bg-white text-[#3a4560]"
+      }`}
     >
       {label}
     </button>
@@ -126,31 +96,41 @@ export default function SuggestionBox() {
 
   return (
     <div className="w-full">
-      <h2 style={s.pageTitle}>Suggestion Box</h2>
-      <p style={s.pageSubtitle}>User feedback and suggestions submitted through the platform</p>
+      <h2 className="m-0 text-[22px] font-extrabold uppercase tracking-[1px] text-[#0d1f3c]">
+        Suggestion Box
+      </h2>
+      <p className="mb-4 mt-1 text-[13px] text-[#9aa3b2]">
+        User feedback and suggestions submitted through the platform
+      </p>
 
-      <div style={s.statsGrid}>
-        <div style={s.statCard}>
-          <div style={s.statLabel}>Total Suggestions</div>
-          <div style={s.statValue}>{total}</div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#22a85a" }}>↑ {thisWeek} this week</div>
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        <div className="flex flex-col gap-1.5 rounded-xl bg-[#f8f9fc] p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.8px] text-[#9aa3b2]">
+            Total Suggestions
+          </div>
+          <div className="text-[28px] font-extrabold text-[#0d1f3c]">{total}</div>
+          <div className="text-xs font-semibold text-[#22a85a]">↑ {thisWeek} this week</div>
         </div>
-        <div style={s.statCard}>
-          <div style={s.statLabel}>This Week</div>
-          <div style={s.statValue}>{thisWeek}</div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: thisWeek > 0 ? "#22a85a" : LABEL_COLOR }}>
+        <div className="flex flex-col gap-1.5 rounded-xl bg-[#f8f9fc] p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.8px] text-[#9aa3b2]">
+            This Week
+          </div>
+          <div className="text-[28px] font-extrabold text-[#0d1f3c]">{thisWeek}</div>
+          <div className={`text-xs font-semibold ${thisWeek > 0 ? "text-[#22a85a]" : "text-[#9aa3b2]"}`}>
             {thisWeek > 0 ? "New feedback" : "No new feedback"}
           </div>
         </div>
-        <div style={s.statCard}>
-          <div style={s.statLabel}>With Attachments</div>
-          <div style={s.statValue}>{withImages}</div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: LABEL_COLOR }}>Include images</div>
+        <div className="flex flex-col gap-1.5 rounded-xl bg-[#f8f9fc] p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.8px] text-[#9aa3b2]">
+            With Attachments
+          </div>
+          <div className="text-[28px] font-extrabold text-[#0d1f3c]">{withImages}</div>
+          <div className="text-xs font-semibold text-[#9aa3b2]">Include images</div>
         </div>
       </div>
 
-      <div style={s.card}>
-        <div style={s.filtersRow}>
+      <div className="rounded-[14px] bg-white p-5">
+        <div className="mb-4 flex flex-wrap gap-2">
           {(["all", "bug", "cards", "feature", "other"] as FilterKey[]).map((f) => (
             <FilterChip
               key={f}
@@ -162,59 +142,66 @@ export default function SuggestionBox() {
         </div>
 
         {loading && (
-          <div style={{ padding: "32px 0", textAlign: "center", color: LABEL_COLOR, fontSize: 14 }}>
+          <div className="py-8 text-center text-sm text-[#9aa3b2]">
             Loading feedback...
           </div>
         )}
 
         {!loading && error && (
-          <div style={{ borderRadius: 12, border: "1px solid #fecaca", background: "#fef2f2", padding: "20px 16px", textAlign: "center" }}>
-            <p style={{ margin: 0, fontSize: 14, color: "#dc2626" }}>{error}</p>
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-5 text-center">
+            <p className="m-0 text-sm text-red-600">{error}</p>
           </div>
         )}
 
         {!loading && !error && visible.length === 0 && (
-          <div style={{ padding: "32px 0", textAlign: "center", color: LABEL_COLOR, fontSize: 14 }}>
+          <div className="py-8 text-center text-sm text-[#9aa3b2]">
             No suggestions in this category.
           </div>
         )}
 
         {!loading && !error && visible.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="flex flex-col gap-3">
             {visible.map((item) => {
               const catKey = getCategoryKey(item.category);
               const hasImages = item.image_urls && item.image_urls.length > 0;
 
               return (
-                <div key={item.id} style={s.sugCard}>
-                  <div style={s.sugLeft}>
-                    <div style={s.sugTop}>
-                      <span style={{ ...badge, ...catBadgeStyle[catKey] }}>
+                <div
+                  key={item.id}
+                  className="flex items-start gap-4 rounded-xl bg-[#f8f9fc] p-4"
+                >
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`rounded-[10px] px-[9px] py-[3px] text-[10px] font-bold uppercase tracking-[0.6px] ${catBadgeClass[catKey]}`}
+                      >
                         {catLabel[catKey]}
                       </span>
                     </div>
-                    <div style={s.sugTitle}>{item.subject}</div>
-                    <div style={s.sugBody}>{item.message}</div>
-                    <div style={s.sugFooter}>
-                      <div style={s.sugTime}>{formatDate(item.created_at)}</div>
+                    <div className="text-sm font-bold text-[#0d1f3c]">{item.subject}</div>
+                    <div className="text-[13px] leading-[1.55] text-[#5a6278]">{item.message}</div>
+                    <div className="mt-1 flex items-center justify-end gap-2.5">
+                      <div className="ml-auto text-[11px] text-[#b0b8cc]">
+                        {formatDate(item.created_at)}
+                      </div>
                     </div>
                   </div>
 
-                  <div style={{ flexShrink: 0, width: 110 }}>
+                  <div className="w-[110px] shrink-0">
                     {hasImages ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div className="flex flex-col gap-1.5">
                         {item.image_urls.slice(0, 1).map((url, i) => (
                           <a key={i} href={url} target="_blank" rel="noopener noreferrer">
                             <img
                               src={url}
                               alt={`Attachment ${i + 1}`}
-                              style={{ width: 110, height: 90, borderRadius: 10, objectFit: "cover", border: "1.5px solid #e8eaf0", display: "block" }}
+                              className="block h-[90px] w-[110px] rounded-[10px] border border-[#e8eaf0] object-cover"
                             />
                           </a>
                         ))}
                       </div>
                     ) : (
-                      <div style={s.imgPlaceholder}>
+                      <div className="flex h-[90px] w-[110px] flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-[#d0d4e0] bg-[#eef0f5] text-[10px] font-semibold uppercase tracking-[0.4px] text-[#b0b8cc]">
                         <ImageIcon />
                         <span>No image</span>
                       </div>

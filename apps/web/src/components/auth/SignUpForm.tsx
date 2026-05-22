@@ -123,15 +123,15 @@ export const SignupForm = ({ onSuccess, onSwitchToSignIn }: SignUpProps) => {
                     I agree to the <span className="font-semibold text-slate-900">Terms & Conditions</span> and{" "}
                     <span className="font-semibold text-slate-900">Privacy Policy</span>
                 </p>
+                {error && (
+                <p className="mt-3 text-center text-sm text-red-600">{error}</p>
+                )}
                 <div className="max-w">
                     <Button isDisabled={loading || !email || !password || !confPass || password !== confPass} type="submit" className="mt-4 h-14 w-full rounded-2xl bg-slate-800">
                     {loading ? "Creating account..." : "Sign Up"}
                     </Button>
                 </div>
             </Form>
-            {error && (
-                <p className="mt-3 text-center text-sm text-red-600">{error}</p>
-            )}
             {message && (
                 <p className="mt-3 text-center text-sm text-emerald-700">{message}</p>
             )}

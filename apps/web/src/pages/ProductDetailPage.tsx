@@ -135,42 +135,44 @@ export default function ProductDetailPage() {
               </div>
             ) : null}
 
-            <div className="flex max-w-xs items-center gap-3">
-              <span className="text-sm text-slate-600">Quantity</span>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  isIconOnly
-                  variant="flat"
-                  onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-                >
-                  -
-                </Button>
-                <span>{quantity}</span>
-                <Button
-                  size="sm"
-                  isIconOnly
-                  variant="flat"
-                  onPress={() => setQuantity((q) => q + 1)}
-                >
-                  +
-                </Button>
+            <div className="flex w-full items-center gap-6">
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="text-sm text-slate-600">Quantity</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    variant="flat"
+                    onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+                  >
+                    -
+                  </Button>
+                  <span>{quantity}</span>
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    variant="flat"
+                    onPress={() => setQuantity((q) => q + 1)}
+                  >
+                    +
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            <Button
-              color="primary"
-              className="w-full max-w-md"
-              onPress={() => {
-                addToCart(
-                  product,
-                  quantity,
-                  showSize ? size : undefined
-                );
-              }}
-            >
-              Add to cart
-            </Button>
+              <Button
+                color="primary"
+                className="ml-auto min-w-[14rem] shrink-0 px-10"
+                onPress={() => {
+                  addToCart(
+                    product,
+                    quantity,
+                    showSize ? size : undefined
+                  );
+                }}
+              >
+                Add to cart
+              </Button>
+            </div>
 
             <div className="border-t border-slate-300 pt-2">
               <button

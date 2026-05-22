@@ -1,32 +1,41 @@
 import { useState } from "react";
-import { teamInitials, teamLogoUrl } from "../../utils/teamLogo";
+import { resolveTeamLogoUrl, teamInitials } from "../../utils/teamLogo";
 
 type Props = {
   abbr: string | null;
   teamName: string;
   side: "home" | "away";
+  logoUrl?: string | null;
+  size?: "sm" | "md" | "lg";
 };
 
-export default function TeamLogo({ abbr, teamName, side }: Props) {
+export default function TeamLogo({
+  abbr,
+  teamName,
+  side,
+  logoUrl,
+  size = "md",
+}: Props) {
   const [broken, setBroken] = useState(false);
   const initials = teamInitials(teamName);
+  const resolved = broken ? null : resolveTeamLogoUrl(abbr, logoUrl);
 
-  if (!abbr || broken) {
+  if (!resolved) {
     return (
       <div
-        className={`team-logo team-logo--fallback team-logo--${side}`}
+        className={`team-logo team-logo--${size} team-logo--fallback team-logo--${side}`}
         aria-hidden
       >
-        {initials}
+        {abbr || initials}
       </div>
     );
   }
 
   return (
     <img
-      src={teamLogoUrl(abbr)}
+      src={resolved}
       alt=""
-      className={`team-logo team-logo--${side}`}
+      className={`team-logo team-logo--${size} team-logo--${side}`}
       loading="lazy"
       onError={() => setBroken(true)}
     />

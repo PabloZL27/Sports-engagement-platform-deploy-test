@@ -318,6 +318,19 @@ jobs:
 
           echo "No legacy infrastructure references found in tracked non-documentation files." | tee .ci-reports/legacy-infra-scan.txt
 
+      - name: Gateway upstream name guard
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if grep -n "icarus-" gateway/nginx.conf > .ci-reports/gateway-upstream-guard.txt; then
+            echo "gateway/nginx.conf must use Compose service DNS names, not legacy icarus-* container names:"
+            cat .ci-reports/gateway-upstream-guard.txt
+            exit 1
+          fi
+
+          echo "gateway/nginx.conf has no legacy icarus-* upstream names." | tee .ci-reports/gateway-upstream-guard.txt
+
       - name: Final report
         if: always()
         shell: bash
@@ -366,4 +379,7 @@ jobs:
             echo
             echo "## Legacy references found"
             cat .ci-reports/legacy-infra-scan.txt 2>/dev/null || echo "Not run."
+            echo
+            echo "## Gateway upstream name guard"
+            cat .ci-reports/gateway-upstream-guard.txt 2>/dev/null || echo "Not run."
           } | tee .ci-reports/final-report.md >> "$GITHUB_STEP_SUMMARY"

@@ -33,6 +33,7 @@ jobs:
         shell: bash
         env:
           COOLIFY_DEPLOY_WEBHOOK_URL: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK_URL }}
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
           STAGING_API_BASE_URL: ${{ secrets.STAGING_API_BASE_URL }}
         run: |
           set -euo pipefail
@@ -45,6 +46,10 @@ jobs:
           missing=0
           if [ -z "${COOLIFY_DEPLOY_WEBHOOK_URL}" ]; then
             echo "Missing required secret: COOLIFY_DEPLOY_WEBHOOK_URL"
+            missing=1
+          fi
+          if [ -z "${COOLIFY_API_TOKEN}" ]; then
+            echo "Missing required secret: COOLIFY_API_TOKEN"
             missing=1
           fi
           if [ -z "${STAGING_API_BASE_URL}" ]; then
@@ -72,11 +77,14 @@ jobs:
         shell: bash
         env:
           COOLIFY_DEPLOY_WEBHOOK_URL: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK_URL }}
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
           set -euo pipefail
 
           echo "Triggering Coolify staging deployment webhook."
-          curl -fsSL -X POST "$COOLIFY_DEPLOY_WEBHOOK_URL" > /tmp/coolify-deploy-response.txt
+          curl -fsSL \
+            -H "Authorization: Bearer $COOLIFY_API_TOKEN" \
+            -X POST "$COOLIFY_DEPLOY_WEBHOOK_URL" > /tmp/coolify-deploy-response.txt
           echo "Coolify deployment webhook accepted."
 
       - name: Wait for deployment to settle
@@ -130,4 +138,3 @@ jobs:
           done
 
           echo "Staging API smoke tests completed."
-

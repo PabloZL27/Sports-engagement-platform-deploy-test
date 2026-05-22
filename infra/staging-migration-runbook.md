@@ -20,6 +20,7 @@ It does not run on `pull_request`. Pull requests should continue to use the exis
 Configure these repository secrets before enabling staging CD:
 
 - `COOLIFY_DEPLOY_WEBHOOK_URL`: Coolify deployment webhook URL for the staging backend compose application.
+- `COOLIFY_API_TOKEN`: Coolify API/deploy token used to authenticate the staging deployment webhook request.
 - `STAGING_API_BASE_URL`: public staging API base URL, expected to be `https://api-staging.pzapata.com`.
 
 Do not commit webhook URLs, tokens, service keys, database URLs, or Supabase secrets into the repository.
@@ -29,7 +30,9 @@ Do not commit webhook URLs, tokens, service keys, database URLs, or Supabase sec
 When the workflow starts from `main` or a manual run, it validates that required secrets exist and then triggers Coolify with:
 
 ```bash
-curl -fsSL -X POST "$COOLIFY_DEPLOY_WEBHOOK_URL"
+curl -fsSL \
+  -H "Authorization: Bearer $COOLIFY_API_TOKEN" \
+  -X POST "$COOLIFY_DEPLOY_WEBHOOK_URL"
 ```
 
 Coolify remains responsible for pulling/building/deploying the backend, gateway, and service containers on the GCP VM. This workflow does not replace Coolify and does not modify Docker Compose.
@@ -90,4 +93,3 @@ This is intentionally the first CD step only:
 - Optional health endpoints should become required once each service exposes a stable non-DB or DB-aware health route.
 - Future hardening should add deployment status polling if Coolify exposes a reliable status endpoint.
 - Future workflows can split frontend/backend checks, add release tagging, and add production promotion after staging QA.
-

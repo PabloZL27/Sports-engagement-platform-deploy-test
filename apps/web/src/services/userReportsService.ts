@@ -1,4 +1,5 @@
 import { apiFetch } from "./api";
+import { supabase } from "../supabaseClient";
 
 export type UserReport = {
   report_id: number;
@@ -27,6 +28,11 @@ type CountResponse = {
 type UpdateReportResponse = {
   success: boolean;
   result: UserReport;
+};
+
+type BanUserResponse = {
+  status?: string;
+  profile?: unknown;
 };
 
 export type CreateUserReportPayload = {
@@ -101,4 +107,25 @@ export async function updateUserReport(
   );
 
   return data.result;
+}
+
+export async function banReportedUser(userId: string): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const accessToken = session?.access_token;
+
+  if (!accessToken) {
+    throw new Error("You must be signed in to ban a user");
+  }
+
+  await apiFetch<BanUserResponse>("/reports/user/ban-user", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ user_id: userId }),
+  });
 }

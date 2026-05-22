@@ -204,11 +204,11 @@ function PostManagement() {
       <Card className="rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
         <div className="px-4 py-4">
           <div className="mb-5 grid grid-cols-3 gap-3 max-[1200px]:grid-cols-2 max-[640px]:grid-cols-1">
-            <GridCard title1="Pending" content={reportStats.pending} />
-            <GridCard title1="Critical" content={reportStats.critical} />
+            <GridCard label="Pending" value={reportStats.pending} />
+            <GridCard label="Critical" value={reportStats.critical} />
             <GridCard
-              title1="Resolved this month"
-              content={reportStats.resolvedThisMonth}
+              label="Resolved this month"
+              value={reportStats.resolvedThisMonth}
             />
           </div>
           <div className="mb-4 flex flex-wrap gap-2">

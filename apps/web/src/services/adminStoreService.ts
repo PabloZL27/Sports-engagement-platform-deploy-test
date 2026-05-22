@@ -1,7 +1,7 @@
 import type { AdminProduct } from "../types";
 
 // Local: http://localhost:4013
-// Gateway: http://localhost:8081/admin-store
+// Gateway route: /admin-store
 const ADMIN_STORE_URL =
   import.meta.env.VITE_ADMIN_STORE_URL || "http://localhost:4013";
 

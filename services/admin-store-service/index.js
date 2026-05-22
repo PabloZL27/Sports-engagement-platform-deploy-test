@@ -11,7 +11,6 @@ const PORT = process.env.PORT || 4013;
 
 // El webhook necesita el body sin parsear — debe ir ANTES del express.json()
 app.use("/webhooks/stripe", express.raw({ type: "application/json" }));
-app.use(cors());
 app.use(express.json());
 
 // Supabase solo para Storage de imágenes (no se toca ninguna tabla)

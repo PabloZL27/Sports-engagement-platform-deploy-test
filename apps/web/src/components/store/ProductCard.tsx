@@ -1,6 +1,7 @@
-import { Card, Button, Chip } from '@heroui/react';
+import { Card, Button } from '@heroui/react';
 import type { StoreProduct } from '../../types';
 import { useNavigate } from 'react-router-dom';
+import StoreTag from './StoreTag';
 
 interface ProductCardProps {
   product: StoreProduct;
@@ -9,19 +10,6 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const navigate = useNavigate();
-
-  const rarityColors = {
-    'New': 'success',      
-    'Popular': 'warning',  
-    'Limited': 'danger'    
-  } as const;
-
-  const typeColors = {
-    'Jerseys': 'primary',
-    'Headwear': 'secondary',
-    'Performance': 'default',
-    'Collectibles': 'default'
-  } as const;
 
   const handleCardClick = () => {
     navigate(`/store/product/${product.id}`);
@@ -37,21 +25,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       <Card className="flex h-full w-full flex-col hover:shadow-lg transition-shadow">
         <Card.Content className="flex flex-1 flex-col p-4">
           {/* Tags arriba */}
-          <div className="flex gap-2 mb-3">
-            <Chip
-              color={rarityColors[product.rarity]}
-              variant="flat"
-              size="sm"
-            >
-              {product.rarity}
-            </Chip>
-            <Chip
-              color={typeColors[product.type]}
-              variant="flat"
-              size="sm"
-            >
-              {product.type}
-            </Chip>
+          <div className="mb-3 flex flex-wrap gap-2">
+            <StoreTag label={product.rarity} kind="rarity" />
+            <StoreTag label={product.type} kind="type" />
           </div>
 
           <div className="w-full aspect-square mb-3 overflow-hidden rounded-lg">
@@ -63,9 +39,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           </div>
 
           <div className="mt-auto space-y-1">
-            <h3 className="min-h-[3.5rem] font-semibold text-lg leading-snug text-[#0B2A4A] line-clamp-2">
-              {product.name}
-            </h3>
+            <div className="min-h-[3rem]">
+              <h3 className="font-semibold text-lg leading-snug text-[#0B2A4A] line-clamp-2">
+                {product.name}
+              </h3>
+            </div>
             <p className="text-2xl font-bold text-[#0f3d78]">
               ${product.price_amount.toFixed(2)}
             </p>

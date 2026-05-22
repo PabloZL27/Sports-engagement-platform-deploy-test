@@ -130,6 +130,19 @@ app.get("/get_products", async (req, res) => {
           : resolvedPrice
         : null;
 
+      const pricesList = await stripe.prices.list({
+        product: raw.id,
+        active: true,
+        limit: 100,
+      });
+
+      plainProduct.variants = pricesList.data.map((price) => ({
+        priceId: price.id,
+        size: price.metadata?.size || null,
+        unit_amount: price.unit_amount,
+        inventory_count: parseInt(price.metadata?.inventory_count || "0", 10),
+      }));
+
       products.push(plainProduct);
     }
 

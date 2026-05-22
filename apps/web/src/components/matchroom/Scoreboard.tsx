@@ -1,31 +1,33 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  getMatch,
-  postMatchDemoPlay,
-  postMatchDemoReset
-} from "../../services/matchesService";
-import type { ApiMatch } from "../../types";
+import { useEffect, useRef, useState } from "react";
+import type { ApiMatch } from "../../types/match";
 import TeamLogo from "./TeamLogo";
 import { parseAbbrsFromShortName } from "../../utils/teamLogo";
+import {
+  formatMatchScoreLine,
+  getMatchStatus,
+  isLiveMatch,
+} from "../../utils/matchHelpers";
 
-type Props = { matchId: number };
+type Props = {
+  match: ApiMatch | null;
+  loading: boolean;
+  error: string | null;
+  busy: boolean;
+  onPlayDemo: () => void;
+  onResetDemo: () => void;
+};
 
-function formatTag(status: string | undefined): { text: string; className: string } {
-  const s = (status || "").toLowerCase();
-  if (s === "final" || s === "finished") {
+function formatTag(status: ReturnType<typeof getMatchStatus>): {
+  text: string;
+  className: string;
+} {
+  if (status === "FINISHED") {
     return { text: "FINAL", className: "scoreboard-tag scoreboard-tag--final" };
   }
-  if (s === "in_progress" || s === "live") {
+  if (status === "LIVE") {
     return { text: "LIVE", className: "scoreboard-tag scoreboard-tag--live" };
   }
   return { text: "UPCOMING", className: "scoreboard-tag scoreboard-tag--upcoming" };
-}
-
-function formatScoreLine(match: ApiMatch): string {
-  const h = match.home_score;
-  const a = match.away_score;
-  if (h == null && a == null) return "— —";
-  return `${h ?? "—"} - ${a ?? "—"}`;
 }
 
 function detailLine(match: ApiMatch): string {
@@ -42,74 +44,31 @@ function detailLine(match: ApiMatch): string {
   return "";
 }
 
-export default function Scoreboard({ matchId }: Props) {
-  const [match, setMatch] = useState<ApiMatch | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const load = useCallback(async () => {
-    if (!Number.isFinite(matchId) || matchId < 1) {
-      setError("Invalid match");
-      setLoading(false);
-      return;
-    }
-    try {
-      const m = await getMatch(matchId);
-      setMatch(m);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
-      setMatch(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [matchId]);
+export default function Scoreboard({
+  match,
+  loading,
+  error,
+  busy,
+  onPlayDemo,
+  onResetDemo,
+}: Props) {
+  const [scoreSplash, setScoreSplash] = useState(false);
+  const previousScoreRef = useRef<string>("");
 
   useEffect(() => {
-    setLoading(true);
-    void load();
-  }, [load]);
+    if (!match || !isLiveMatch(match)) return;
 
-  useEffect(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
+    const scoreLine = formatMatchScoreLine(match);
+    if (previousScoreRef.current && previousScoreRef.current !== scoreLine) {
+      setScoreSplash(false);
+      requestAnimationFrame(() => setScoreSplash(true));
+      const timer = window.setTimeout(() => setScoreSplash(false), 800);
+      previousScoreRef.current = scoreLine;
+      return () => window.clearTimeout(timer);
     }
-    if (match?.demo_active) {
-      pollRef.current = setInterval(() => void load(), 2000);
-    }
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [match?.demo_active, load]);
 
-  async function onPlay() {
-    setBusy(true);
-    try {
-      const m = await postMatchDemoPlay(matchId);
-      setMatch(m);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error demo");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onReset() {
-    setBusy(true);
-    try {
-      const m = await postMatchDemoReset(matchId);
-      setMatch(m);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error demo");
-    } finally {
-      setBusy(false);
-    }
-  }
+    previousScoreRef.current = scoreLine;
+  }, [match?.home_score, match?.away_score, match?.status, match]);
 
   if (loading) {
     return (
@@ -127,15 +86,23 @@ export default function Scoreboard({ matchId }: Props) {
     );
   }
 
-  const tag = formatTag(match.status);
+  const status = getMatchStatus(match);
+  const tag = formatTag(status);
+  const live = status === "LIVE";
   const home = match.home_team ?? "Home";
   const away = match.away_team ?? "Away";
   const { home: homeAbbr, away: awayAbbr } = parseAbbrsFromShortName(match.short_name);
 
   return (
-    <div className="scoreboard">
+    <div className={`scoreboard ${live ? "scoreboard--live" : ""}`}>
       <div className="team team--home">
-        <TeamLogo abbr={homeAbbr} teamName={home} side="home" />
+        <TeamLogo
+          abbr={homeAbbr ?? match.home_team_abbreviation ?? null}
+          teamName={home}
+          side="home"
+          logoUrl={match.home_team_logo}
+          size="lg"
+        />
         <div className="team-text">
           <h2>{home}</h2>
           <span className="team-role">Home</span>
@@ -146,7 +113,15 @@ export default function Scoreboard({ matchId }: Props) {
         <div>
           <span className={tag.className}>{tag.text}</span>
         </div>
-        <h1>{formatScoreLine(match)}</h1>
+        <h1
+          className={
+            live
+              ? `scoreboard-score scoreboard-score--live${scoreSplash ? " score-splash" : ""}`
+              : "scoreboard-score"
+          }
+        >
+          {formatMatchScoreLine(match)}
+        </h1>
         {detailLine(match) ? <p className="score-detail">{detailLine(match)}</p> : null}
         {match.demo_eligible ? (
           <div className="scoreboard-demo-bar">
@@ -154,7 +129,7 @@ export default function Scoreboard({ matchId }: Props) {
               type="button"
               className="scoreboard-demo-btn"
               disabled={busy || !!match.demo_active}
-              onClick={() => void onPlay()}
+              onClick={onPlayDemo}
             >
               Play demo
             </button>
@@ -162,7 +137,7 @@ export default function Scoreboard({ matchId }: Props) {
               type="button"
               className="scoreboard-demo-btn scoreboard-demo-btn--secondary"
               disabled={busy || !match.demo_active}
-              onClick={() => void onReset()}
+              onClick={onResetDemo}
             >
               Reset
             </button>
@@ -175,7 +150,13 @@ export default function Scoreboard({ matchId }: Props) {
           <h2>{away}</h2>
           <span className="team-role">Away</span>
         </div>
-        <TeamLogo abbr={awayAbbr} teamName={away} side="away" />
+        <TeamLogo
+          abbr={awayAbbr ?? match.away_team_abbreviation ?? null}
+          teamName={away}
+          side="away"
+          logoUrl={match.away_team_logo}
+          size="lg"
+        />
       </div>
     </div>
   );

@@ -2,13 +2,13 @@ import type { WordleKeyboardStatus, WordleTileStatus } from "../../hooks/useWord
 
 const rows = ["QWERTYUIOP", "ASDFGHJKL", "ENTERZXCVBNMDEL"];
 const KEY_BASE_CLASS =
-  "h-12 min-w-11 cursor-pointer rounded-lg border border-[#d8dee5] bg-white font-bold text-[#0b2a55] max-[900px]:h-11 max-[900px]:min-w-9 max-[900px]:text-xs";
+  "h-12 min-w-11 cursor-pointer rounded-lg font-bold transition-colors max-[900px]:h-11 max-[900px]:min-w-9 max-[900px]:text-xs";
 
 const keyStatusStyles: Record<WordleTileStatus, string> = {
   correct: "border-[#2a9d8f] bg-[#2a9d8f] text-white",
-  present: "border-[#f9c74f] bg-[#f9c74f]",
-  absent: "border-[#dbe4ee] bg-[#dbe4ee]",
-  empty: "border-[#d8dee5] bg-white",
+  present: "border-[#f9c74f] bg-[#f9c74f] text-[#0b2a55]",
+  absent: "border-[#dbe4ee] bg-[#dbe4ee] text-[#0b2a55]",
+  empty: "border-[#d8dee5] bg-white text-[#0b2a55]",
 };
 
 function normalizeKey(key: string): string {
@@ -50,7 +50,7 @@ function WordleKeyboard({ keyboardStatus, onKeyPress }: WordleKeyboardProps) {
                 key={key}
                 type="button"
                 onClick={() => onKeyPress(key)}
-                className={`${KEY_BASE_CLASS} ${keyStatusStyles[status]} ${
+                className={`border ${KEY_BASE_CLASS} ${keyStatusStyles[status]} ${
                   isWide ? "min-w-20 max-[900px]:min-w-16" : ""
                 }`}
               >

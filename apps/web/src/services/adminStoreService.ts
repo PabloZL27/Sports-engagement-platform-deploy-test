@@ -1,8 +1,15 @@
 import type { AdminProduct } from "../types";
-import { apiFetch } from "./api";
+
+// Local: http://localhost:4013
+// Gateway route: /admin-store
+const ADMIN_STORE_URL =
+  import.meta.env.VITE_ADMIN_STORE_URL || "http://localhost:4013";
 
 async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  return apiFetch<T>(`/admin-store${path}`, options);
+  const res = await fetch(`${ADMIN_STORE_URL}${path}`, options);
+  const data = await res.json();
+  if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP error ${res.status}`);
+  return data as T;
 }
 
 export async function getAdminProducts(): Promise<{ products: AdminProduct[] }> {

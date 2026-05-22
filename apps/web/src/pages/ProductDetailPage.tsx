@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Card, Chip} from '@heroui/react';
+import { Button } from '@heroui/react';
+import StoreTag from '../components/store/StoreTag';
 import Navbar from '../components/layout/Navbar';
 import { getProducts } from '../services/storeService';
 import type { StoreProduct } from '../types';
@@ -13,10 +14,11 @@ import chevronUpIcon from '../assets/icons/chevron-up.svg';
 import CartButton from '../components/store/CartButton';
 import CartSlide from '../components/store/CartSlide';
 
-const CLOTHING_TYPES: StoreProduct['type'][] = ['Jerseys', 'Headwear', 'Performance'];
-
-function isClothing(p: StoreProduct) {
-  return CLOTHING_TYPES.includes(p.type);
+function hasSizeVariants(p: StoreProduct) {
+  if (p.product_type === 'clothing' || p.product_type === 'footwear') {
+    return (p.sizes?.length ?? 0) > 0;
+  }
+  return (p.sizes?.length ?? 0) > 0;
 }
 
 export default function ProductDetailPage() {
@@ -39,7 +41,7 @@ export default function ProductDetailPage() {
         const found = list.find((p) => p.id === id) ?? null;
         if (!cancelled) {
           setProduct(found);
-          if (found && isClothing(found) && found.sizes?.length) {
+          if (found && hasSizeVariants(found) && found.sizes?.length) {
             setSize(found.sizes[0]!);
           }
         }
@@ -52,14 +54,7 @@ export default function ProductDetailPage() {
     };
   }, [id]);
 
-  const showSize = product && isClothing(product) && (product.sizes?.length ?? 0) > 0;
-
-  const typeColors = {
-    Jerseys: 'primary',
-    Headwear: 'secondary',
-    Performance: 'success',
-    Collectibles: 'default',
-  } as const;
+  const showSize = product && hasSizeVariants(product);
 
   if (loading) {
     return (
@@ -112,12 +107,8 @@ export default function ProductDetailPage() {
             <div>
               <h1 className="text-2xl font-bold text-[#0B2A4A]">{product.name}</h1>
               <div className="mt-2 flex flex-wrap gap-2">
-                <Chip color="success" variant="flat" size="sm">
-                  {product.rarity}
-                </Chip>
-                <Chip color={typeColors[product.type]} variant="flat" size="sm">
-                  {product.type}
-                </Chip>
+                <StoreTag label={product.rarity} kind="rarity" />
+                <StoreTag label={product.type} kind="type" />
               </div>
               <p className="mt-3 text-3xl font-bold text-[#0f3d78]">
                 ${product.price_amount.toFixed(2)}
@@ -144,42 +135,44 @@ export default function ProductDetailPage() {
               </div>
             ) : null}
 
-            <div className="flex max-w-xs items-center gap-3">
-              <span className="text-sm text-slate-600">Quantity</span>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  isIconOnly
-                  variant="flat"
-                  onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-                >
-                  -
-                </Button>
-                <span>{quantity}</span>
-                <Button
-                  size="sm"
-                  isIconOnly
-                  variant="flat"
-                  onPress={() => setQuantity((q) => q + 1)}
-                >
-                  +
-                </Button>
+            <div className="flex w-full items-center gap-6">
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="text-sm text-slate-600">Quantity</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    variant="flat"
+                    onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+                  >
+                    -
+                  </Button>
+                  <span>{quantity}</span>
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    variant="flat"
+                    onPress={() => setQuantity((q) => q + 1)}
+                  >
+                    +
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            <Button
-              color="primary"
-              className="w-full max-w-md"
-              onPress={() => {
-                addToCart(
-                  product,
-                  quantity,
-                  showSize ? size : undefined
-                );
-              }}
-            >
-              Add to cart
-            </Button>
+              <Button
+                color="primary"
+                className="ml-auto min-w-[14rem] shrink-0 px-10"
+                onPress={() => {
+                  addToCart(
+                    product,
+                    quantity,
+                    showSize ? size : undefined
+                  );
+                }}
+              >
+                Add to cart
+              </Button>
+            </div>
 
             <div className="border-t border-slate-300 pt-2">
               <button

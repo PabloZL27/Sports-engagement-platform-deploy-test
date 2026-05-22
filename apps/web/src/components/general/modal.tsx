@@ -19,7 +19,9 @@ export const ModalComp = (props: ModalProps) => {
             <Modal.Backdrop>
             <Modal.Container>
                 <Modal.Dialog className={dialogClassName}>
-                <Modal.CloseTrigger /> 
+                <Modal.CloseTrigger>
+                    ✕
+                </Modal.CloseTrigger> 
                 {title && (
                     <Modal.Header>
                         <Modal.Heading>{title} </Modal.Heading>

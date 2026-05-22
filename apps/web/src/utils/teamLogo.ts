@@ -25,6 +25,22 @@ export function teamLogoUrl(abbr: string): string {
   return `/team-logos/${abbr}.${LOGO_EXT}`;
 }
 
+/** Prefer ESPN/API logo; fall back to local public asset by abbreviation. */
+export function resolveTeamLogoUrl(
+  abbr: string | null | undefined,
+  apiLogoUrl?: string | null,
+): string | null {
+  const remote = typeof apiLogoUrl === "string" ? apiLogoUrl.trim() : "";
+  if (remote.startsWith("http://") || remote.startsWith("https://")) {
+    return remote;
+  }
+
+  const code = typeof abbr === "string" ? abbr.trim().toUpperCase() : "";
+  if (!code) return null;
+
+  return teamLogoUrl(code);
+}
+
 export function teamInitials(teamName: string, maxLen = 3): string {
   const parts = teamName.trim().split(/\s+/).filter(Boolean);
   if (parts.length >= 2) {

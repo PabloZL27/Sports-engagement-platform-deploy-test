@@ -32,6 +32,16 @@ const upload = multer({
   },
 });
 
+const IMAGE_TOO_LARGE_ERROR =
+  "The image exceeds the 5MB size limit. Please choose a different image smaller than 5MB.";
+
+function uploadProductImage(req, res, next) {
+  upload.single("image")(req, res, (err) => {
+    if (err) return next(err);
+    next();
+  });
+}
+
 // ─── Helper: subir imagen a Supabase Storage ───────────────────────────────
 async function uploadImage(file) {
   if (!file) return null;
@@ -148,7 +158,7 @@ app.get("/products", async (req, res) => {
 
 // ─── POST /products ────────────────────────────────────────────────────────
 // Crea un nuevo producto en Stripe con sus variantes e inventario
-app.post("/products", upload.single("image"), async (req, res) => {
+app.post("/products", uploadProductImage, async (req, res) => {
   try {
     const { name, category, product_type, rarity, basePrice, stock } = req.body;
     const variants = req.body.variants ? JSON.parse(req.body.variants) : [];
@@ -208,7 +218,7 @@ app.post("/products", upload.single("image"), async (req, res) => {
 
 // ─── PUT /products/:id ─────────────────────────────────────────────────────
 // Edita un producto existente: info básica, status e inventario por variante
-app.put("/products/:id", upload.single("image"), async (req, res) => {
+app.put("/products/:id", uploadProductImage, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, category, product_type, rarity, status } = req.body;
@@ -336,6 +346,24 @@ app.post("/webhooks/stripe", async (req, res) => {
   }
 
   res.json({ received: true });
+});
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({
+        status: "error",
+        error: IMAGE_TOO_LARGE_ERROR,
+      });
+    }
+    return res.status(400).json({ status: "error", error: err.message });
+  }
+
+  if (err) {
+    return res.status(500).json({ status: "error", error: err.message });
+  }
+
+  next();
 });
 
 app.listen(PORT, () =>

@@ -11,7 +11,7 @@ import {
   type ChatParticipantRow,
 } from "../../services/roomsChatService";
 import { createUserReport } from "../../services/userReportsService";
-import { getProfilesBatch } from "../../services/profileService";
+import { getMyProfile, getProfilesBatch } from "../../services/profileService";
 import type { ApiMatch } from "../../types/match";
 import {
   isLiveMatch,
@@ -230,13 +230,15 @@ function FanChat({ matchId, match }: FanChatProps) {
   const [reportError, setReportError] = useState<string | null>(null);
   const [reportMessage, setReportMessage] = useState<string | null>(null);
   const [avatarByUserId, setAvatarByUserId] = useState<Record<string, string>>({});
+  const [senderProfileAvatarUrl, setSenderProfileAvatarUrl] = useState<string | null>(null);
   const fetchedAvatarIdsRef = useRef(new Set<string>());
 
   const userId = session?.user ? chatUserIdFromSession(session.user) : null;
   const senderDisplayName =
     session?.user != null ? displayNameFromSession(session.user) : null;
-  const senderAvatarUrl =
+  const senderSessionAvatarUrl =
     session?.user != null ? avatarFromSession(session.user) : null;
+  const senderAvatarUrl = senderProfileAvatarUrl || senderSessionAvatarUrl;
   const live = match != null && isLiveMatch(match);
 
   const refresh = useCallback(async () => {
@@ -346,6 +348,41 @@ function FanChat({ matchId, match }: FanChatProps) {
       cancelled = true;
     };
   }, [messages]);
+
+  useEffect(() => {
+    if (!session?.access_token || userId == null) {
+      setSenderProfileAvatarUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const data = await getMyProfile(session.access_token);
+        if (cancelled) return;
+
+        const avatar = data.profile?.avatar_url?.trim();
+        if (avatar && avatar.startsWith("http")) {
+          setSenderProfileAvatarUrl(avatar);
+          setAvatarByUserId((prev) => ({
+            ...prev,
+            [userId.toLowerCase()]: avatar,
+          }));
+        } else {
+          setSenderProfileAvatarUrl(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setSenderProfileAvatarUrl(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.access_token, userId]);
 
   function resolveMessageAvatar(msg: ChatMessageRow, mine: boolean): string | null {
     const fromMsg = msg.avatar_url?.trim();

@@ -1,7 +1,10 @@
 import { useState, useCallback } from 'react';
 import type { Tweet } from '../types/tweet';
+import { apiFetch } from '../services/api';
 
-const API_URL = '/api/tweets';
+type TweetsResponse = {
+  tweets?: Tweet[];
+};
 
 export function useTweets() {
   const [tweets, setTweets] = useState<Tweet[]>([]);
@@ -12,14 +15,9 @@ export function useTweets() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(
-        `${API_URL}?hashtag=${encodeURIComponent(hashtag)}&limit=10`
+      const data = await apiFetch<TweetsResponse>(
+        `/tweets?hashtag=${encodeURIComponent(hashtag)}&limit=10`
       );
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Error al obtener tweets');
-      }
-      const data = await res.json();
       setTweets(data.tweets || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error desconocido');

@@ -2,7 +2,6 @@ services:
   gateway:
     build:
       context: ../gateway
-    container_name: icarus-gateway
     ports:
       - "8081:8080"
     depends_on:
@@ -28,11 +27,10 @@ services:
   community-service:
     build:
       context: ../services/community-service
-    container_name: icarus-community
     environment:
       PORT: 4001
       PROFILE_SERVICE_URL: http://profile-service:4006
-      COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@supabase-db:5432/community_db
+      COMMUNITY_DB_URL: ${COMMUNITY_DB_URL}
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
     ports:
@@ -43,7 +41,6 @@ services:
   matches-service:
     build:
       context: ../services/matches-service
-    container_name: icarus-matches
     environment:
       PORT: 4002
       MATCHES_DB_URL: ${MATCHES_DB_URL}
@@ -55,10 +52,9 @@ services:
   rooms-service:
     build:
       context: ../services/rooms-service
-    container_name: icarus-rooms
     environment:
       PORT: 4003
-      ROOMS_DB_URL: postgresql://rooms_svc:RoomsSvc_2026_dev@host.docker.internal:15432/rooms_db
+      ROOMS_DB_URL: ${ROOMS_DB_URL}
       ROOMS_CHAT_MESSAGE_MAX_AGE_MS: "1800000"
       ROOMS_CHAT_PRUNE_INTERVAL_MS: "1800000"
       ROOMS_CHAT_PRUNE_CHECK_INTERVAL_MS: "120000"
@@ -68,7 +64,6 @@ services:
   analytics-service:
     build:
       context: ../services/analytics-service
-    container_name: icarus-analytics
     environment:
       PORT: 4004
       ANALYTICS_DB_URL: ${ANALYTICS_DB_URL}
@@ -78,7 +73,6 @@ services:
   store-service:
     build:
       context: ../services/store-service
-    container_name: icarus-store
     environment:
       PORT: 4005
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
@@ -89,7 +83,6 @@ services:
   profile-service:
     build:
       context: ../services/profile-service
-    container_name: icarus-profile
     environment:
       PORT: 4006
       PROFILE_DB_URL: ${PROFILE_DB_URL}
@@ -103,7 +96,6 @@ services:
   tweets-service:
     build:
       context: ../services/tweets-service
-    container_name: icarus-tweets
     environment:
       PORT: 4007
       GETXAPI_KEY: ${GETXAPI_KEY}
@@ -113,7 +105,6 @@ services:
   history-service:
     build:
       context: ../services/history-service
-    container_name: icarus-history
     environment:
       PORT: 4008
       HISTORY_DB_URL: ${HISTORY_DB_URL}
@@ -125,7 +116,6 @@ services:
   cards-service:
     build:
       context: ../services/cards-service
-    container_name: icarus-cards
     environment:
       PORT: 4009
       CARDS_DB_URL: ${CARDS_DB_URL}
@@ -135,7 +125,6 @@ services:
   offseason-service:
     build:
       context: ../services/offseason-service
-    container_name: icarus-offseason
     environment:
       PORT: 4010
       OFFSEASON_DB_URL: ${OFFSEASON_DB_URL}
@@ -147,7 +136,6 @@ services:
   news-service:
     build:
       context: ../services/news-service
-    container_name: icarus-news
     environment:
       PORT: 4011
       NEWS_API_KEY: ${NEWS_API_KEY}
@@ -163,7 +151,6 @@ services:
   feedback-service:
     build:
       context: ../services/feedback_service
-    container_name: icarus-feedback
     environment:
       PORT: 4012
       FEEDBACKMAIL_DB_URL: ${FEEDBACKMAIL_DB_URL}
@@ -175,7 +162,6 @@ services:
   admin-store-service:
     build:
       context: ../services/admin-store-service
-    container_name: icarus-admin-store
     environment:
       PORT: 4013
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
@@ -188,12 +174,11 @@ services:
   war-room-service:
     build:
       context: ../services/war-room-service
-    container_name: icarus-war-room
     environment:
       PORT: 4014
       WAR_ROOM_DB_URL: ${WAR_ROOM_DB_URL}
-      PROFILE_SERVICE_URL: http://icarus-profile:4006
-      CARDS_SERVICE_URL: http://icarus-cards:4009
+      PROFILE_SERVICE_URL: ${PROFILE_SERVICE_URL:-http://profile-service:4006}
+      CARDS_SERVICE_URL: ${CARDS_SERVICE_URL:-http://cards-service:4009}
     ports:
       - "4014:4014"
     networks:
@@ -202,7 +187,6 @@ services:
   dashboard-service:
     build:
       context: ../services/dashboard-service
-    container_name: icarus-dashboard
     environment:
       PORT: 4015
       PROFILE_SERVICE_URL: ${PROFILE_SERVICE_URL:-http://profile-service:4006}
@@ -216,11 +200,10 @@ services:
   reports-service:
     build:
       context: ../services/reports-service
-    container_name: icarus-reports
     environment:
       PORT: 4016
-      COMMUNITY_SERVICE_URL: http://icarus-community:4001
-      PROFILE_SERVICE_URL: http://icarus-profile:4006
+      COMMUNITY_SERVICE_URL: ${COMMUNITY_SERVICE_URL:-http://community-service:4001}
+      PROFILE_SERVICE_URL: ${PROFILE_SERVICE_URL:-http://profile-service:4006}
     ports:
       - "4016:4016"
     networks:

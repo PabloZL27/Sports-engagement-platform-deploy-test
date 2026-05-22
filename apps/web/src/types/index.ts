@@ -29,17 +29,26 @@ export interface ApiMatch {
   demo_clock_label?: string;
 }
 
+export interface StoreProductVariant {
+  priceId: string;
+  size: string;
+  unit_amount: number;
+  inventory_count?: number;
+}
+
 export interface StoreProduct {
   id: string;
   name: string;
   description?: string;
   default_price: string | { id: string; unit_amount: number | null; currency?: string };
   images?: string[];
-  
+
   rarity: 'New' | 'Popular' | 'Limited';
   type: 'Jerseys' | 'Headwear' | 'Performance' | 'Collectibles';
-  sizes?: string[];  
-  price_amount: number; 
+  product_type?: 'clothing' | 'footwear' | 'no_size' | null;
+  sizes?: string[];
+  variants?: StoreProductVariant[];
+  price_amount: number;
 }
 
 export interface CartItem {

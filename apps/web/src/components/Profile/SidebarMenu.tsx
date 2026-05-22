@@ -29,6 +29,13 @@ function SidebarMenu({ activeTab, setActiveTab }: SidebarMenuProps) {
       >
         Badges
       </button>
+
+      <button
+        className={`profile-sidebar-item ${activeTab === "Posts History" ? "active" : ""}`}
+        onClick={() => setActiveTab("Posts History")}
+      >
+        Posts History
+      </button>
     </Card>
   );
 }

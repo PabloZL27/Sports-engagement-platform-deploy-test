@@ -4,6 +4,7 @@ import Dashboard from "../components/admin/Dashboard";
 import StoreManagment from "../components/admin/StoreManagement";
 import PostManagement from "../components/admin/PostManagement";
 import SuggestionBox from "../components/admin/SuggestionBox";
+import UserManagement from "../components/admin/UserManagement";
 import SidebarMenuAdmin from "../components/admin/SidebarMenuAdmin";
 import "../styles/admin.css";
 import "../styles/profile.css";
@@ -26,6 +27,8 @@ function AdminPage() {
             {activeTab === "dashboard" && <Dashboard />}
 
             {activeTab === "cReports" && <PostManagement />}
+
+            {activeTab === "uReports" && <UserManagement />}
 
             {activeTab === "storeManagement" && <StoreManagment />}
 

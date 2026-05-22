@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useTweets } from '../../hooks/useTweets';
-import { TweetCard } from './TweetCard';
+import { useState } from "react";
+import { Icon } from "@iconify/react";
+import { useTweets } from "../../hooks/useTweets";
+import { TweetCard } from "./TweetCard";
 
 export function TwitterFeed() {
   const [isActive, setIsActive] = useState(false);
@@ -8,77 +9,73 @@ export function TwitterFeed() {
 
   const handleActivate = () => {
     setIsActive(true);
-    fetchTweets('TitansCrew');
+    fetchTweets("TitansCrew");
   };
 
   const handleRefresh = () => {
-    fetchTweets('TitansCrew');
+    fetchTweets("TitansCrew");
   };
 
   return (
     <div className="twitter-feed">
-        <div className="twitter-feed__header">
-            <h3>Use #TitansCrew on X to show up in the feed</h3>
-            <div className="twitter-feed__actions">
-                {!isActive? (
-                    <button
-                    onClick={handleActivate}
-                    style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#1da1f2',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 8,
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                    }}
-                    >
-                        Activate feed
-                    </button>
-                ):(
-
-                <button
-                onClick={handleRefresh}
-                disabled={loading}
-                style={{
-                    padding: '8px 16px',
-                    backgroundColor: loading ? '#ccc' : '#1da1f2',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 8,
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    fontWeight: 600,
-                }}
-                >
-                {loading ? "Loading..." : "Refresh"}
-                </button>
-                )}
-            </div>
+      <div className="twitter-feed__header">
+        <div>
+          <h3>#TitansCrew on X</h3>
+          <span className="twitter-feed__tag">
+            <Icon icon="mdi:twitter" width={16} />
+            Live fan feed
+          </span>
         </div>
+        <div className="twitter-feed__actions">
+          {!isActive ? (
+            <button
+              type="button"
+              className="twitter-feed__btn"
+              onClick={handleActivate}
+            >
+              Activate feed
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="twitter-feed__btn"
+              onClick={handleRefresh}
+              disabled={loading}
+            >
+              {loading ? "Loading..." : "Refresh"}
+            </button>
+          )}
+        </div>
+      </div>
 
-        {error && (
-            <p className="twitter-feed__error" style={{color: 'red', padding:12, backgroundColor: '#fee'}}>
-                {error}
+      {error && <p className="twitter-feed__error">{error}</p>}
+
+      <div className="twitter-feed__list">
+        {tweets.map((tweet) => (
+          <TweetCard key={tweet.id} tweet={tweet} />
+        ))}
+
+        {!isActive && !loading && tweets.length === 0 && (
+          <div className="twitter-feed__empty">
+            <div className="twitter-feed__empty-icon" aria-hidden>
+              <Icon icon="mdi:twitter" width={28} />
+            </div>
+            <p className="twitter-feed__empty-title">Join the conversation</p>
+            <p className="twitter-feed__empty-text">
+              Tap &quot;Activate feed&quot; to load the latest #TitansCrew tweets from X.
             </p>
+          </div>
         )}
 
-        <div className="twitter-feed__list">
-            {tweets.map((tweet) => (
-                <TweetCard key={tweet.id} tweet={tweet} />
-            ))}
-
-            {!isActive && !loading && tweets.length === 0 && (
-                <p style={{ textAlign: 'center', color: '#657786', padding: 32 }}>
-                    Tap &quot;Activate feed&quot; to load the latest #TitansCrew tweets
-                </p>
-            )}
-
-            {isActive && !loading && tweets.length === 0 && !error && (
-                <p style={{ textAlign: 'center', color: '#657786', padding: 32 }}>
-                    No recent tweets found
-                </p>
-            )}
-        </div>
+        {isActive && !loading && tweets.length === 0 && !error && (
+          <div className="twitter-feed__empty">
+            <p className="twitter-feed__empty-title">No tweets yet</p>
+            <p className="twitter-feed__empty-text">
+              Post with #TitansCrew on X to show up here.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

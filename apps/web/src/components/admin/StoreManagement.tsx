@@ -5,7 +5,13 @@ import { getAdminProducts, deleteProduct, updateProduct } from "../../services/a
 import type { AdminProduct } from "../../types";
 import AddProductForm from "./AddProductForm";
 import EditProductForm from "./EditProductForm";
+import ConfirmDialog from "./ConfirmDialog";
 import "../../styles/profile.css";
+
+type StatusToggleRequest = {
+  product: AdminProduct;
+  mode: "hide" | "show";
+};
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -97,6 +103,9 @@ export default function StoreManagement() {
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
+  const [statusToggleRequest, setStatusToggleRequest] =
+    useState<StatusToggleRequest | null>(null);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -120,14 +129,22 @@ export default function StoreManagement() {
     (p.category ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
-  async function handleToggleStatus(product: AdminProduct) {
+  function requestToggleStatus(product: AdminProduct) {
+    setActionError("");
+    setStatusToggleRequest({
+      product,
+      mode: product.status === "active" ? "hide" : "show",
+    });
+  }
+
+  async function confirmToggleStatus() {
+    if (!statusToggleRequest) return;
+
+    const { product } = statusToggleRequest;
     const isActive = product.status === "active";
-    const msg = isActive
-      ? "Deactivate this product? It will no longer appear in the store."
-      : "Reactivate this product? It will appear in the store again.";
-    if (!confirm(msg)) return;
 
     try {
+      setActionError("");
       setDeletingId(product.id);
       if (isActive) {
         await deleteProduct(product.id);
@@ -151,8 +168,9 @@ export default function StoreManagement() {
             : p
         )
       );
+      setStatusToggleRequest(null);
     } catch (e) {
-      alert((e as Error).message);
+      setActionError((e as Error).message);
     } finally {
       setDeletingId(null);
     }
@@ -170,8 +188,34 @@ export default function StoreManagement() {
     }
   }
 
+  const isHiding = statusToggleRequest?.mode === "hide";
+  const pendingProduct = statusToggleRequest?.product;
+
   return (
     <div className="personal-info-section">
+      <ConfirmDialog
+        isOpen={statusToggleRequest !== null}
+        title={
+          isHiding
+            ? "Hide product from store?"
+            : "Show product in store?"
+        }
+        message={
+          isHiding
+            ? `"${pendingProduct?.name ?? "This product"}" will be deactivated and will no longer appear in the store. You can show it again later.`
+            : `"${pendingProduct?.name ?? "This product"}" will be reactivated and will appear in the store again.`
+        }
+        confirmLabel={isHiding ? "Hide product" : "Show product"}
+        confirmVariant={isHiding ? "danger" : "primary"}
+        loading={deletingId === pendingProduct?.id}
+        onConfirm={() => void confirmToggleStatus()}
+        errorMessage={actionError || undefined}
+        onCancel={() => {
+          if (deletingId) return;
+          setStatusToggleRequest(null);
+          setActionError("");
+        }}
+      />
       <div className="personal-info-header">
         <h2>STORE MANAGEMENT</h2>
         <p>Manage the store and products</p>
@@ -276,7 +320,7 @@ export default function StoreManagement() {
                               <td className="py-4 px-4"><StockCell product={product} /></td>
                               <td className="py-4 px-4 text-center">
                                 <button
-                                  onClick={() => handleToggleStatus(product)}
+                                  onClick={() => requestToggleStatus(product)}
                                   disabled={deletingId === product.id}
                                   className="transition-colors disabled:opacity-40 inline-flex items-center justify-center"
                                   title={product.status === "active" ? "Hide from store" : "Show in store"}

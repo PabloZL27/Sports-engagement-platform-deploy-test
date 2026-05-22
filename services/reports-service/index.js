@@ -32,7 +32,8 @@ app.get("/", (req, res) => {
       "/reports/user/delete-report",
       "/reports/user/count-critical",
       "/reports/user/count-pending",
-      "/reports/user/count-banned"
+      "/reports/user/count-banned",
+      "/reports/user/ban-user"
     ],
   });
 });
@@ -119,6 +120,32 @@ app.get("/reports/user/count-banned", async (req, res) => {
   }
 });
 // DONE
+
+app.patch("/reports/user/ban-user", async (req, res) => {
+  try {
+    const data = await fetchJson(
+      `${PROFILE_SERVICE_URL}/reports/ban-user`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(req.headers.authorization ? { Authorization: req.headers.authorization } : {})
+        },
+        body: JSON.stringify(req.body),
+      }
+    );
+
+    res.json(data);
+  } catch (error) {
+    console.error("reports service ban user failed:", error);
+    res.status(502).json({
+      service: "reports-service",
+      status: "error",
+      error: "Unable to ban user",
+      details: error.message,
+    });
+  }
+});
 app.post("/reports/user/create-report", async (req, res) => {
   try {
     const { user_id, reported_by_user_id, reason, content } = req.body;

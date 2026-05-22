@@ -92,6 +92,54 @@ app.get("/reports/count-banned-users", async (req, res) => {
   }
 });
 
+app.patch("/reports/ban-user", requireAuth, async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({
+        status: "error",
+        message: "user_id is required"
+      });
+    }
+
+    const result = await pool.query(`
+      UPDATE accounts
+      SET report_status = 'Banned', updated_at = NOW()
+      WHERE user_id = $1
+      RETURNING
+        account_id,
+        user_id,
+        first_name,
+        last_name,
+        username,
+        country,
+        avatar_url,
+        role,
+        report_status,
+        created_at,
+        updated_at
+    `, [user_id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Profile not found"
+      });
+    }
+
+    res.json({
+      status: "success",
+      profile: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      error: error.message
+    });
+  }
+});
+
 // Debug temporal: lista perfiles
 app.get("/", async (req, res) => {
   try {

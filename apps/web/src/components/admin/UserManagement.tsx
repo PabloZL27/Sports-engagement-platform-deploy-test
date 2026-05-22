@@ -4,6 +4,7 @@ import GridCard from "../community-reports/GridCard";
 import ReportPost from "../community-reports/ReportPost";
 import { ModalComp } from "../general/modal";
 import {
+  banReportedUser,
   countBannedUsers,
   countCriticalUserReports,
   countPendingUserReports,
@@ -174,6 +175,10 @@ function UserManagement() {
 
   async function handleResolveGroup(group: ReportGroup, resolvedType: string) {
     try {
+      if (resolvedType === "Banned" && group.userId) {
+        await banReportedUser(group.userId);
+      }
+
       const updates = await Promise.all(
         group.reports.map((report) =>
           updateUserReport({
@@ -197,15 +202,19 @@ function UserManagement() {
         setSelectedGroup(null);
       }
 
-      const [critical, pending] = await Promise.all([
+      const [critical, pending, banned] = await Promise.all([
         countCriticalUserReports(),
         countPendingUserReports(),
+        resolvedType === "Banned"
+          ? countBannedUsers()
+          : Promise.resolve(stats.banned),
       ]);
 
       setStats((prev) => ({
         ...prev,
         critical,
         pending,
+        banned,
       }));
     } catch (updateError) {
       setError(

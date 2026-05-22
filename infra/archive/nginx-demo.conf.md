@@ -1,3 +1,9 @@
+# Archived Tec VM Demo Nginx Config
+
+This file preserves the legacy Tec VM demo proxy for historical reference only.
+It must not be used as an active runtime config for staging or production.
+
+```nginx
 # LEGACY / TEC VM ONLY
 # This proxy was used for the Tec VM demo setup.
 # It assumes the frontend is served on 10.14.255.82:4173
@@ -76,3 +82,4 @@ http {
     }
   }
 }
+```

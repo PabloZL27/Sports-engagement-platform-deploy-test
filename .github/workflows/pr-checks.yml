@@ -281,8 +281,10 @@ jobs:
           # failing on historical documentation. It does scan tracked source and
           # config files, including env examples and legacy config files.
           patterns='nip\.io|10\.14\.255\.82|supabase\.10\.14\.255\.82|http://localhost:8081|trycloudflare\.com'
+          deployed_patterns='nip\.io|10\.14\.255\.82|supabase\.10\.14\.255\.82|trycloudflare\.com'
 
           git ls-files \
+            ':!:.github/workflows/pr-checks.yml' \
             ':!:*.md' \
             ':!:**/*.md' \
             ':!:apps/web/public/Build/**' \
@@ -292,7 +294,23 @@ jobs:
 
           : > .ci-reports/legacy-infra-scan.txt
 
-          if xargs -a .ci-reports/tracked-non-doc-files.txt grep -nEI "$patterns" > .ci-reports/legacy-infra-scan.txt; then
+          found_legacy_reference=0
+          while IFS= read -r file; do
+            active_patterns="$patterns"
+
+            # These files are allowed to carry local-only localhost defaults for
+            # development. They are still scanned for old deployed Tec/nip.io
+            # references.
+            if [ "$file" = "apps/web/.env.example" ] || [ "$file" = "apps/web/vite.config.ts" ]; then
+              active_patterns="$deployed_patterns"
+            fi
+
+            if grep -HnEI "$active_patterns" -- "$file" >> .ci-reports/legacy-infra-scan.txt; then
+              found_legacy_reference=1
+            fi
+          done < .ci-reports/tracked-non-doc-files.txt
+
+          if [ "$found_legacy_reference" -eq 1 ]; then
             echo "Legacy infrastructure references found in non-documentation files:"
             cat .ci-reports/legacy-infra-scan.txt
             exit 1

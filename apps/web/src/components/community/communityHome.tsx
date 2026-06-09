@@ -48,7 +48,7 @@ const CommunitySection = () => {
                     </Link>
                 </div>
                 </section>
-                <section className="home-section">
+                <section className="home-section home-community-posts">
                   {posts.slice(0, 3).map((post) => (
                     <CommunityHome
                       key={post.post_id ?? post.title}

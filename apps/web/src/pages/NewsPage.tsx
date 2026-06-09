@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import NewsCard from "../components/news/NewsCard";
-import Navbar from "../components/layout/Navbar";
 import "../styles/news.css";
 import NewsCardHorizontal from "../components/news/NewsCardHorizontal";
 import { syncNewsArticles } from "../services/newsService";
@@ -32,9 +31,7 @@ function NewsPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
-        <Navbar />
-
+      <main className="page-main">
         <section className="news-section">
           <h1 className="news-title">Titans News & Updates</h1>
         </section>

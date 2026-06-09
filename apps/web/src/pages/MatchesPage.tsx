@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/layout/Navbar";
 import MatchCard from "../components/matches/MatchCard";
 import { Button } from "@heroui/react";
 import { getMatches } from "../services/matchesService";
 import { getProfile } from "../services/profileService";
 import type { ApiMatch, Match, } from "../types/match";
+import "../styles/matchCard.css";
 
 
 function getInitials(firstName?: string, lastName?: string): string {
@@ -82,41 +82,40 @@ function MatchesPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-    <main className="mx-auto max-w-[1400px] px-6 py-6">
-      <Navbar />
-        <section className="mb-7 flex flex-wrap items-start justify-between gap-6 rounded-[28px] bg-gradient-to-r from-[#0B2A55] via-[#1D4E89] to-[#60A5FA] px-10 py-10 text-white shadow-xl">
-          <div>
-            <h1 className="mb-3 text-5xl font-black tracking-tight md:text-6xl">
-              MATCH CALENDAR
-            </h1>
+    <main className="page-main">
+        <section className="matches-hero hero-section">
+          <div className="matches-hero-main">
+            <h1 className="hero-title">MATCH CALENDAR</h1>
 
-            <p className="mb-6 text-xl text-blue-50">
+            <p className="matches-hero-subtitle">
               Full season schedule and real-time match room access.
             </p>
 
-            <div className="flex flex-wrap gap-10">
-              <div>
-                <span className="mr-2 text-4xl font-black">{matches.length}</span>
-                <span className="text-lg text-blue-50">Games This Season</span>
+            <div className="matches-hero-stats">
+              <div className="matches-hero-stat">
+                <span className="matches-hero-stat-number">{matches.length}</span>
+                <span className="matches-hero-stat-label">Games This Season</span>
               </div>
 
-              <div>
-                <span className="mr-2 text-4xl font-black">{upcomingCount}</span>
-                <span className="text-lg text-blue-50">Upcoming Matches</span>
+              <div className="matches-hero-stat">
+                <span className="matches-hero-stat-number">{upcomingCount}</span>
+                <span className="matches-hero-stat-label">Upcoming Matches</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="matches-hero-filters">
             <Button
               variant="ghost"
-              className="h-14 min-w-44 rounded-2xl border border-white/30 bg-white/10 px-6 text-lg font-semibold text-white">
+              className="matches-hero-filter-btn"
+            >
               2025 Season
             </Button>
 
             <Button
               variant="ghost"
-              className="h-14 min-w-44 rounded-2xl border border-white/30 bg-white/10 px-6 text-lg font-semibold text-white">
+              className="matches-hero-filter-btn"
+            >
               All Venues
             </Button>
           </div>

@@ -13,6 +13,7 @@ import NewReply from "./newReply";
 import { SigninWithEmailForm } from "../auth/SignInForm";
 import { SignupForm } from "../auth/SignUpForm";
 import PostCard from "./PostCard";
+import PostsScrollPanel from "./PostsScrollPanel";
 
 type PostCompProps = {
   activeFilter?: "hot" | "new";
@@ -135,13 +136,21 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
     activeCategory === "All Topics"
       ? displayPosts
       : displayPosts.filter((post) => post.category_name === activeCategory);
-  if (loading) return <p className="py-8 text-center">Cargando posts...</p>;
-  if (error) return <p className="py-8 text-center text-red-500">{error}</p>;
+  if (loading) {
+    return (
+      <PostsScrollPanel isEmpty emptyMessage="Cargando posts..." />
+    );
+  }
 
+  if (error) {
+    return (
+      <PostsScrollPanel isEmpty emptyMessage={error} />
+    );
+  }
 
   return (
     <>
-      <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
+      <PostsScrollPanel isEmpty={categoryFilteredPosts.length === 0}>
         {categoryFilteredPosts.map((post) => (
           <PostCard
             key={post.post_id}
@@ -153,14 +162,16 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
             onRequireAuth={() => setIsOpen(true)}
             onOpenDetail={(selectedPost) => {
               setIsDetailsOpen(true);
-              setSelectedPost(selectedPost)
+              setSelectedPost(selectedPost);
             }}
           />
         ))}
-        <ModalComp 
+      </PostsScrollPanel>
+
+      <ModalComp 
           isOpen={isDetailsOpen}
           onOpenChange={setIsDetailsOpen}
-          dialogClassName="w-[min(45vw,72rem)] max-w-none"
+          dialogClassName="w-[calc(100vw-2rem)] max-w-3xl sm:w-[min(45vw,72rem)] sm:max-w-none"
           children={
           selectedPost && (
             <div className="space-y-6">
@@ -185,7 +196,6 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
           )
           }
         />
-      </div>
       <div className="gap-12" style={{ flexShrink: 0 }}>
         <ModalComp 
           isOpen={isOpen} 

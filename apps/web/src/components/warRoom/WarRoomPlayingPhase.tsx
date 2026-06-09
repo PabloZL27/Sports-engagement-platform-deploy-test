@@ -121,7 +121,7 @@ export function WarRoomPlayingPhase({
 
   return (
     <>
-      <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden">
+      <div className="flex min-h-0 flex-col gap-2 pb-2">
         {/* Turn indicator */}
         <div className="shrink-0 space-y-1.5">
           <div
@@ -152,18 +152,18 @@ export function WarRoomPlayingPhase({
 
         {/* Secret Agendas panel */}
         {match.you.agendas && match.you.agendas.length > 0 && (
-          <div className="shrink-0 rounded-2xl bg-[#0B2A55] p-4 shadow">
-            <p className="mb-3 text-xs font-extrabold uppercase tracking-widest text-yellow-400 sm:text-sm">
+          <div className="shrink-0 rounded-xl bg-[#0B2A55] p-3 shadow sm:rounded-2xl sm:p-4">
+            <p className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.12em] text-yellow-400 sm:mb-3 sm:text-sm sm:tracking-widest">
               Your Secret Agendas — only you can see these
             </p>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
               {match.you.agendas.map((a) => {
                 const done = a.achieved === true;
                 const missed = a.achieved === false;
                 return (
                   <div
                     key={a.agendaId}
-                    className={`rounded-xl border p-3.5 ${
+                    className={`rounded-lg border p-2.5 sm:rounded-xl sm:p-3.5 ${
                       done
                         ? "border-green-400 bg-green-500/15"
                         : missed
@@ -171,16 +171,16 @@ export function WarRoomPlayingPhase({
                           : "border-white/20 bg-white/10"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-1.5 sm:gap-2">
                       <p
-                        className={`text-base font-black leading-tight sm:text-lg ${
+                        className={`text-sm font-black leading-tight sm:text-lg ${
                           done ? "text-green-100" : missed ? "text-red-100" : "text-white"
                         }`}
                       >
                         {a.name}
                       </p>
                       <span
-                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-black ${
+                        className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-black sm:px-2.5 sm:py-1 sm:text-xs ${
                           done
                             ? "bg-green-400 text-[#0B2A55]"
                             : missed
@@ -196,7 +196,7 @@ export function WarRoomPlayingPhase({
                       </span>
                     </div>
                     <p
-                      className={`mt-1.5 text-sm leading-snug ${
+                      className={`mt-1 line-clamp-2 text-xs leading-snug sm:mt-1.5 sm:line-clamp-none sm:text-sm ${
                         done
                           ? "text-green-100/90"
                           : missed
@@ -208,7 +208,7 @@ export function WarRoomPlayingPhase({
                     </p>
                     {a.achieved !== undefined && (
                       <p
-                        className={`mt-1 text-xs font-bold uppercase tracking-wide ${
+                        className={`mt-0.5 text-[10px] font-bold uppercase tracking-wide sm:mt-1 sm:text-xs ${
                           done ? "text-green-300" : "text-red-300"
                         }`}
                       >
@@ -249,7 +249,7 @@ export function WarRoomPlayingPhase({
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          <div className="grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 sm:grid-cols-6">
             {hand.map((card) => <PlayerCard key={card.id} card={card} />)}
             {Array.from({ length: emptySlots }).map((_, i) => (
               <EmptySlot key={`empty-${i}`} />

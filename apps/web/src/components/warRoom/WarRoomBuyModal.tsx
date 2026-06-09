@@ -27,32 +27,33 @@ export function WarRoomBuyModal({
   onSetDiscardMode,
 }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="mx-4 w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
-        <div className="bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_100%)] px-6 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-extrabold tracking-widest text-blue-300 uppercase mb-1">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-3 sm:items-center sm:p-4">
+      <div className="max-h-[min(92vh,720px)] w-full max-w-[min(100%,520px)] overflow-y-auto rounded-2xl bg-white shadow-2xl sm:max-w-2xl">
+        <div className="flex items-center justify-between bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_100%)] px-4 py-3 sm:px-6 sm:py-4">
+          <div className="min-w-0 pr-3">
+            <p className="mb-0.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-blue-300 sm:mb-1 sm:text-[10px] sm:tracking-widest">
               Scouting Report
             </p>
-            <h2 className="text-xl font-black text-white">
+            <h2 className="text-lg font-black leading-tight text-white sm:text-xl">
               {discardMode ? "Choose a card to discard" : "Pick a player"}
             </h2>
           </div>
           <div
-            className={`text-2xl font-black ${buyTimer > 10 ? "text-green-300" : "text-red-400"}`}
+            className={`shrink-0 text-xl font-black sm:text-2xl ${
+              buyTimer > 10 ? "text-green-300" : "text-red-400"
+            }`}
           >
             {buyTimer}s
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {!discardMode ? (
             <>
-              <p className="text-sm text-gray-500 mb-4">
-                Select one player to add to your hand. The 5 TitanCash is
-                charged regardless.
+              <p className="mb-3 text-xs leading-relaxed text-gray-500 sm:mb-4 sm:text-sm">
+                Select one player to add to your hand. The 5 TitanCash is charged regardless.
               </p>
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="mb-4 grid grid-cols-3 gap-2 sm:mb-6 sm:gap-4">
                 {scoutCards.map((card) => {
                   const isChosen = selectedScout?.poolId === card.poolId;
                   return (
@@ -60,9 +61,9 @@ export function WarRoomBuyModal({
                       key={card.poolId}
                       type="button"
                       onClick={() => onSelectScout(card)}
-                      className={`rounded-xl p-1 text-left transition-all ${
+                      className={`min-w-0 rounded-lg p-0.5 text-left transition-all sm:rounded-xl sm:p-1 ${
                         isChosen
-                          ? "ring-2 ring-[#0f3d78] ring-offset-2"
+                          ? "ring-2 ring-[#0f3d78] ring-offset-1 sm:ring-offset-2"
                           : "hover:opacity-95"
                       }`}
                     >
@@ -77,14 +78,15 @@ export function WarRoomBuyModal({
                   );
                 })}
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                 <button
                   type="button"
                   disabled={buyLoading}
                   onClick={onForfeit}
-                  className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40"
+                  className="flex-1 rounded-xl border border-gray-300 px-3 py-2.5 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-40 sm:px-4 sm:py-3 sm:text-sm"
                 >
-                  Pass (pay 5 TC, no card)
+                  <span className="sm:hidden">Pass (5 TC)</span>
+                  <span className="hidden sm:inline">Pass (pay 5 TC, no card)</span>
                 </button>
                 <button
                   type="button"
@@ -97,7 +99,7 @@ export function WarRoomBuyModal({
                       onPickPlayer(selectedScout.poolId, null);
                     }
                   }}
-                  className="flex-1 rounded-xl bg-[#0f3d78] px-4 py-3 text-sm font-bold text-white hover:bg-[#0B2A55] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 rounded-xl bg-[#0f3d78] px-3 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#0B2A55] disabled:cursor-not-allowed disabled:opacity-40 sm:px-4 sm:py-3 sm:text-sm"
                 >
                   {buyLoading ? "Picking..." : "Pick Player"}
                 </button>
@@ -105,21 +107,21 @@ export function WarRoomBuyModal({
             </>
           ) : (
             <>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="mb-3 text-xs leading-relaxed text-gray-500 sm:mb-4 sm:text-sm">
                 Your hand is full. Choose a card to discard to make room for{" "}
                 <span className="font-bold text-[#0B2A55]">
                   {selectedScout?.displayName}
                 </span>
                 .
               </p>
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 mb-6">
+              <div className="mb-4 grid grid-cols-3 gap-2 sm:mb-6 sm:grid-cols-6 sm:gap-3">
                 {hand.map((card) => (
                   <button
                     key={card.id}
                     type="button"
                     disabled={buyLoading}
                     onClick={() => onPickPlayer(selectedScout!.poolId, card.id)}
-                    className="rounded-xl ring-2 ring-red-400 ring-offset-2 transition-all hover:ring-red-600"
+                    className="min-w-0 rounded-lg ring-2 ring-red-400 ring-offset-1 transition-all hover:ring-red-600 sm:rounded-xl sm:ring-offset-2"
                   >
                     <WarRoomCardVisual
                       displayName={card.displayName}
@@ -134,7 +136,7 @@ export function WarRoomBuyModal({
               <button
                 type="button"
                 onClick={() => onSetDiscardMode(false)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-50 sm:py-3 sm:text-sm"
               >
                 Back
               </button>

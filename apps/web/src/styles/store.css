@@ -25,6 +25,17 @@
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
 }
 
+@media (max-width: 640px) {
+  .store-hero-bar {
+    padding: 20px 18px;
+    border-radius: 20px;
+  }
+
+  .store-hero-title {
+    font-size: 1.75rem;
+  }
+}
+
 .store-hero-title--onblue {
   color: #ffffff;
 }

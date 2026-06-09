@@ -4,7 +4,6 @@ import LegendaryPlayerCard from "../components/history/LegendaryPlayerCard";
 import LegendaryPlayerModal from "../components/history/LegendaryPlayerModal";
 import TimelineItem from "../components/history/TimelineItem";
 import TimelineStoryModal from "../components/history/TimelineStoryModal";
-import Navbar from "../components/layout/Navbar";
 import { getHistoryPageData } from "../services/historyService";
 import type { HistoryPageData, LegendaryPlayer, TimelineEvent } from "../types/history";
 
@@ -70,13 +69,11 @@ function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
-        <Navbar />
-
-        <section className="mb-6 rounded-3xl border border-[#e6e9ef] bg-white px-8 py-[30px] shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
+    <div className="min-h-screen overflow-x-hidden bg-[#f4f5f7]">
+      <main className="page-main max-w-full overflow-x-hidden lg:mx-auto lg:max-w-[1400px] lg:px-6 lg:pb-6">
+        <section className="mb-6 rounded-3xl border border-[#e6e9ef] bg-white px-5 py-6 shadow-[0_8px_20px_rgba(15,23,42,0.08)] sm:px-8 sm:py-[30px]">
           <div className="max-w-[760px]">
-            <h1 className="mb-2.5 text-[42px] font-bold leading-[1.08] text-[#0c2340]">
+            <h1 className="mb-2.5 text-[clamp(1.5rem,6vw,2.625rem)] font-bold leading-[1.08] text-[#0c2340] lg:text-[42px]">
               {hero?.title || "History of the Tennessee Titans"}
             </h1>
             <p className="text-base leading-[1.6] text-slate-500">
@@ -149,9 +146,9 @@ function HistoryPage() {
           <h2 className="mb-[18px] text-2xl font-extrabold text-[#0c2340]">
             Legendary Players
           </h2>
-          <div className="mt-8 grid gap-6 lg:gap-7 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
             {!loading && visiblePlayers.length === 0 && !error ? (
-              <article className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:col-span-2 lg:col-span-3">
+              <article className="col-span-2 rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:col-span-2 lg:col-span-3">
                 No legendary players available.
               </article>
             ) : visiblePlayers.map((player) => (
@@ -168,9 +165,9 @@ function HistoryPage() {
           <h2 className="mb-3 text-2xl font-extrabold text-[#0c2340]">
             Classic Matches Archive
           </h2>
-          <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:gap-6">
             {!loading && visibleMatches.length === 0 && !error ? (
-              <article className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:col-span-2">
+              <article className="col-span-full rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:col-span-2">
                 No classic matches available.
               </article>
             ) : visibleMatches.map((match) => (

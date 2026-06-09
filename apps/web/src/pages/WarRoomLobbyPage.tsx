@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/layout/Navbar";
 import { Auth } from "../context/AuthContext";
 import { createMatch, joinMatch } from "../services/warRoomService";
 
@@ -45,12 +44,10 @@ function WarRoomLobbyPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
-        <Navbar />
-
-        <section className="mb-9 flex flex-wrap items-start justify-between gap-6 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] px-10 py-[42px] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
+      <main className="page-main">
+        <section className="hero-section">
           <div>
-            <h1 className="m-0 text-[58px] leading-[1.05] font-black">
+            <h1 className="hero-title">
               TITANS WAR ROOM
             </h1>
             <p className="mt-2 text-lg opacity-80">
@@ -68,7 +65,7 @@ function WarRoomLobbyPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 md:grid-cols-2 max-w-2xl mx-auto">
+        <section className="grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl bg-white p-8 shadow flex flex-col gap-4 items-center text-center">
             <h2 className="text-xl font-bold text-[#0B2A55]">
               Create War Room

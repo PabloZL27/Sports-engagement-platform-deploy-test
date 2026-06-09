@@ -83,9 +83,9 @@ function NewsCard() {
 
   return (
     <>
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6">
         {!loading && visibleNews.length === 0 && !error ? (
-          <article className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:col-span-2 xl:col-span-3">
+          <article className="col-span-2 rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] xl:col-span-3">
             No news available right now.
           </article>
         ) : (
@@ -95,39 +95,36 @@ function NewsCard() {
               href={article.url}
               target="_blank"
               rel="noreferrer"
-              className="block"
+              className="block min-w-0"
             >
-              <Card className="h-full w-[calc(100%-30px)] mx-auto overflow-hidden p-0 transition-transform duration-200 hover:-translate-y-1">
-                <img
-                  alt={article.title}
-                  className="block h-56 w-full rounded-t-2xl object-cover"
-                  loading="lazy"
-                  src={article.urlToImage || "https://placehold.co/800x450?text=News"}
-                />
+              <Card className="mx-auto flex h-full w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-0 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+                <div className="aspect-[5/3] w-full overflow-hidden sm:aspect-video">
+                  <img
+                    alt={article.title}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    src={article.urlToImage || "https://placehold.co/800x450?text=News"}
+                  />
+                </div>
 
-                <div className="flex h-full flex-col gap-3 px-4 py-4">
-                  <Card.Header className="gap-2 p-0">
-                    <Card.Description className="line-clamp-3">
-                      {formatPublishedDate(article.publishedAt)}
-                    </Card.Description>
-                    <Card.Title className="line-clamp-2">{article.title}</Card.Title>
-                    <Card.Description className="line-clamp-3">
-                      {article.description || "No description available."}
-                    </Card.Description>
-                  </Card.Header>
+                <div className="flex flex-1 flex-col gap-2 px-3 py-3 sm:gap-2.5 sm:px-4 sm:py-4">
+                  <p className="text-[10px] font-medium text-slate-500 sm:text-xs">
+                    {formatPublishedDate(article.publishedAt)}
+                  </p>
 
-                  <Card.Footer className="p-0">
-                    <span className="inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:underline">
+                  <h3 className="line-clamp-3 text-xs font-bold leading-snug text-[#0B2A4A] sm:text-sm md:line-clamp-2 md:text-base">
+                    {article.title}
+                  </h3>
+
+                  <p className="line-clamp-2 text-[11px] leading-relaxed text-slate-500 sm:line-clamp-3 sm:text-sm">
+                    {article.description || "No description available."}
+                  </p>
+
+                  <div className="mt-auto pt-1 sm:pt-2">
+                    <span className="inline-flex w-full items-center justify-center rounded-full bg-blue-500 px-3 py-2 text-[11px] font-semibold text-white shadow-[0_6px_14px_rgba(37,99,235,0.22)] transition hover:bg-blue-600 sm:py-2.5 sm:text-xs">
                       Read More
-                      <svg
-                        aria-hidden="true"
-                        className="h-4 w-4"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                      </svg>
                     </span>
-                  </Card.Footer>
+                  </div>
                 </div>
               </Card>
             </a>

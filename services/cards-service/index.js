@@ -40,13 +40,23 @@ function pickUnlockedCards(lockedRows) {
   return unlockedCards;
 }
 
+const DEFAULT_PACKS_TOTAL = 12;
+const PACK_OPENING_BASE_SECONDS = 10;
+const PACK_OPENING_MULTIPLIER = 2;
+
 async function getPacksRemaining(client, userId) {
   const packResult = await client.query(
     `SELECT packs_remaining FROM user_packs WHERE user_id = $1`,
     [userId]
   );
 
-  return packResult.rows.length > 0 ? packResult.rows[0].packs_remaining : 12;
+  return packResult.rows.length > 0 ? packResult.rows[0].packs_remaining : DEFAULT_PACKS_TOTAL;
+}
+
+function getPackOpeningSeconds(packsRemainingBeforeStart) {
+  const packNumber = DEFAULT_PACKS_TOTAL + 1 - packsRemainingBeforeStart;
+  const n = Math.max(1, Math.min(packNumber, DEFAULT_PACKS_TOTAL));
+  return PACK_OPENING_BASE_SECONDS * Math.pow(PACK_OPENING_MULTIPLIER, n - 1);
 }
 
 // ─── Health Check ────────────────────────────────────────────
@@ -210,7 +220,7 @@ app.get("/pack/status", async (req, res) => {
 });
 
 // ─── POST /pack/start ─────────────────────────────────────────
-// Starts a timed pack opening (24h). Only one active at a time.
+// Starts a timed pack opening. Wait grows exponentially per pack (10s, 20s, 40s…).
 app.post("/pack/start", async (req, res) => {
   const client = await pool.connect();
   try {
@@ -254,11 +264,13 @@ app.post("/pack/start", async (req, res) => {
       [userId, 11]
     );
 
+    const openingSeconds = getPackOpeningSeconds(packsRemaining);
+
     const insert = await client.query(
       `INSERT INTO pack_openings (user_id, status, ready_at)
-       VALUES ($1, 'OPENING', NOW() + INTERVAL '10 seconds')
+       VALUES ($1, 'OPENING', NOW() + ($2 * INTERVAL '1 second'))
        RETURNING ready_at`,
-      [userId]
+      [userId, openingSeconds]
     );
 
     await client.query("COMMIT");
@@ -266,7 +278,8 @@ app.post("/pack/start", async (req, res) => {
     res.json({
       status: "OPENING",
       ready_at: insert.rows[0].ready_at,
-      seconds_remaining: 24 * 60 * 60,
+      seconds_remaining: openingSeconds,
+      opening_seconds: openingSeconds,
     });
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});

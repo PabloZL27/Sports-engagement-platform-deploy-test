@@ -52,7 +52,7 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className={`cursor-pointer rounded-full border px-7 py-2.5 text-base font-semibold transition ${
+      className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-semibold transition sm:px-7 sm:py-2.5 sm:text-base ${
         active
           ? "border-[#0d1f3c] bg-[#0d1f3c] text-white"
           : "border-[#d0d4e0] bg-white text-[#3a4560]"
@@ -192,26 +192,26 @@ function PostManagement() {
 
   return (
     <div className="w-full">
-      <div className="mb-7">
-        <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
-          COMMUNITY REPORTS
+      <div className="mb-4 sm:mb-6">
+        <h2 className="m-0 text-lg font-extrabold uppercase tracking-[1px] text-[#0d1f3c] sm:text-[22px]">
+          Community Reports
         </h2>
-        <p className="mt-2.5 text-[0.95rem] text-[#9aa3af]">
+        <p className="mt-1 text-[13px] leading-snug text-[#9aa3b2]">
           General overview of activity and community management
         </p>
       </div>
 
-      <Card className="rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
-        <div className="px-4 py-4">
-          <div className="mb-5 grid grid-cols-3 gap-3 max-[1200px]:grid-cols-2 max-[640px]:grid-cols-1">
+      <Card className="rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] sm:rounded-[24px]">
+        <div className="flex flex-col gap-4 p-3 sm:p-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <GridCard label="Pending" value={reportStats.pending} />
             <GridCard label="Critical" value={reportStats.critical} />
             <GridCard
-              label="Resolved this month"
+              label="Resolved"
               value={reportStats.resolvedThisMonth}
             />
           </div>
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {(["all", "pending", "critical", "resolved"] as ReportFilterKey[]).map(
               (f) => (
                 <FilterChip
@@ -224,19 +224,19 @@ function PostManagement() {
             )}
           </div>
           {isLoading ? (
-            <p className="m-0 rounded-4xl bg-[#f7f8fc] px-6 py-5 text-[16px] font-semibold text-[#596175]">
+            <p className="m-0 rounded-2xl bg-[#f7f8fc] px-4 py-4 text-sm font-semibold text-[#596175] sm:rounded-4xl sm:px-6 sm:py-5 sm:text-base">
               Loading community reports...
             </p>
           ) : error ? (
-            <p className="m-0 rounded-4xl bg-[#fff3f3] px-6 py-5 text-[16px] font-semibold text-[#9f2f2f]">
+            <p className="m-0 rounded-2xl bg-[#fff3f3] px-4 py-4 text-sm font-semibold text-[#9f2f2f] sm:rounded-4xl sm:px-6 sm:py-5 sm:text-base">
               {error}
             </p>
           ) : filteredReports.length === 0 ? (
-            <p className="m-0 rounded-4xl bg-[#f7f8fc] px-6 py-5 text-[16px] font-semibold text-[#596175]">
+            <p className="m-0 rounded-2xl bg-[#f7f8fc] px-4 py-4 text-sm font-semibold text-[#596175] sm:rounded-4xl sm:px-6 sm:py-5 sm:text-base">
               No reports found.
             </p>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {filteredReports.map((report) => {
                 const severity = getReportSeverity(report);
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Card } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/home.css";
 
@@ -13,7 +13,7 @@ export interface CarouselSlide {
 }
 
 const TITANS_BACKGROUND_OVERLAY =
-  "linear-gradient(90deg, rgba(0, 34, 68) 0%, rgba(0, 34, 68, 0.7) 45%, rgba(0, 34, 68, 0.22) 100%)";
+  "linear-gradient(90deg, rgba(0, 34, 68, 0.92) 0%, rgba(0, 34, 68, 0.72) 38%, rgba(0, 34, 68, 0.28) 72%, rgba(0, 34, 68, 0.12) 100%)";
 
 function getTitansBackground(imageUrl: string) {
   return `${TITANS_BACKGROUND_OVERLAY}, url("${imageUrl}")`;
@@ -32,20 +32,20 @@ const DEFAULT_SLIDES: CarouselSlide[] = [
   },
   {
     id: "cards",
-    title: "Explore Your Cards",
+    title: "Collect cards by opening packs",
     subtitle:
       "Access the team's collection, review featured players, and enjoy a more immersive visual experience.",
     buttonLabel: "View Cards",
     route: "/team",
     backgroundImageUrl:
-       "https://s.wsj.net/public/resources/images/BN-WD095_3eBz5_M_20171114135035.jpg",
+      "https://s.wsj.net/public/resources/images/BN-WD095_3eBz5_M_20171114135035.jpg",
   },
   {
     id: "voice-agent",
-    title: "Talk to the Voice Agent",
+    title: "Talk to the T-Rac TitanBot",
     subtitle:
       "Start a conversational experience to get help, team information, and real-time answers.",
-    buttonLabel: "Open Agent",
+    buttonLabel: "Go to T-Rac TitanBot",
     route: "/voice-agent",
     backgroundImageUrl:
       "https://static.clubs.nfl.com/image/upload/f_auto/titans/sydgcqdg3y1bfi1rg1wn",
@@ -86,61 +86,57 @@ function CarouselHome({
     setActiveIndex(index);
   }
 
-  function showPreviousSlide() {
-    setActiveIndex((currentIndex) =>
-      currentIndex === 0 ? slides.length - 1 : currentIndex - 1,
-    );
-  }
-
-  function showNextSlide() {
-    setActiveIndex((currentIndex) => (currentIndex + 1) % slides.length);
-  }
-
   return (
     <section
       className="carousel-home-wrapper"
       aria-label="Carrusel principal del inicio"
+      aria-roledescription="carousel"
     >
-      <Card
-        className="carousel-home-card"
-        style={{
-          background: getTitansBackground(activeSlide.backgroundImageUrl),
-        }}
-      >
-        <Card.Content className="carousel-home-card-body">
-          <div className="carousel-home-middle-row">
-            <button
-              type="button"
-              aria-label="Slide anterior"
-              onClick={showPreviousSlide}
-              className="carousel-home-arrow-button"
+      <div className="carousel-home-hero" aria-hidden="true">
+        {slides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`carousel-home-bg-layer${
+              index === activeIndex ? " carousel-home-bg-layer--active" : ""
+            }`}
+            style={{
+              backgroundImage: getTitansBackground(slide.backgroundImageUrl),
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="carousel-home-inner">
+        <div className="carousel-home-content-area">
+          <div className="carousel-home-content">
+            <h2 className="carousel-home-title">{activeSlide.title}</h2>
+
+            <Button
+              size="lg"
+              onPress={() => navigate(activeSlide.route)}
+              className="carousel-home-cta-button"
             >
-              {"<"}
-            </button>
-
-            <div className="carousel-home-content">
-              <h2 className="carousel-home-title">{activeSlide.title}</h2>
-
-              <Button
-                size="lg"
-                onPress={() => navigate(activeSlide.route)}
-                className="carousel-home-cta-button"
-              >
-                {activeSlide.buttonLabel}
-              </Button>
-            </div>
-
-            <button
-              type="button"
-              aria-label="Siguiente slide"
-              onClick={showNextSlide}
-              className="carousel-home-arrow-button"
-            >
-              {">"}
-            </button>
+              {activeSlide.buttonLabel}
+            </Button>
           </div>
-        </Card.Content>
-      </Card>
+        </div>
+
+        <div className="carousel-home-dots-row" role="tablist" aria-label="Slides">
+          {slides.map((slide, index) => (
+            <button
+              key={slide.id}
+              type="button"
+              role="tab"
+              aria-label={`Ir al slide ${index + 1}`}
+              aria-selected={index === activeIndex}
+              onClick={() => goToSlide(index)}
+              className={`carousel-home-dot${
+                index === activeIndex ? " carousel-home-dot-active" : ""
+              }`}
+            />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

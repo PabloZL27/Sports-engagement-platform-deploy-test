@@ -74,20 +74,93 @@ function StockCell({ product }: { product: AdminProduct }) {
   );
 }
 
-function ProductImage({ src, name }: { src: string | null; name: string }) {
+function ProductImage({ src, name, className = "w-10 h-10" }: { src: string | null; name: string; className?: string }) {
   if (src) {
     return (
       <img
         src={src}
         alt={name}
-        className="w-10 h-10 rounded-lg object-cover bg-gray-100 flex-shrink-0"
+        className={`${className} rounded-lg object-cover bg-gray-100 flex-shrink-0`}
       />
     );
   }
   return (
-    <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+    <div className={`${className} rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0`}>
       <span className="text-gray-400 text-xs font-bold">IMG</span>
     </div>
+  );
+}
+
+function ProductListCard({
+  product,
+  deletingId,
+  onToggleStatus,
+  onEdit,
+}: {
+  product: AdminProduct;
+  deletingId: string | null;
+  onToggleStatus: (product: AdminProduct) => void;
+  onEdit: (product: AdminProduct) => void;
+}) {
+  return (
+    <article className="rounded-xl border border-gray-100 bg-[#f8f9fc] p-3">
+      <div className="flex gap-3">
+        <ProductImage src={product.image} name={product.name} className="h-12 w-12" />
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-800">
+            {product.name}
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <RarityBadge rarity={product.rarity} />
+            <span className="text-[11px] text-gray-500">{product.category ?? "—"}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-2.5 grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <span className="block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+            Price
+          </span>
+          <span className="font-semibold text-gray-800">{formatPrice(product.variants)}</span>
+        </div>
+        <div>
+          <span className="block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+            Stock
+          </span>
+          <StockCell product={product} />
+        </div>
+      </div>
+
+      <div className="mt-2.5 flex items-center justify-end gap-4 border-t border-gray-100 pt-2">
+        <button
+          onClick={() => onToggleStatus(product)}
+          disabled={deletingId === product.id}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 transition-colors disabled:opacity-40"
+          title={product.status === "active" ? "Hide from store" : "Show in store"}
+        >
+          {product.status === "active" ? (
+            <>
+              <FiEye size={15} className="text-blue-500" />
+              Visible
+            </>
+          ) : (
+            <>
+              <FiEyeOff size={15} className="text-gray-400" />
+              Hidden
+            </>
+          )}
+        </button>
+        <button
+          onClick={() => onEdit(product)}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 transition-colors"
+          title="Edit product"
+        >
+          <FiEdit2 size={15} />
+          Edit
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -216,12 +289,16 @@ export default function StoreManagement() {
           setActionError("");
         }}
       />
-      <div className="personal-info-header">
-        <h2>STORE MANAGEMENT</h2>
-        <p>Manage the store and products</p>
+      <div className="mb-4 sm:mb-6">
+        <h2 className="m-0 text-lg font-extrabold uppercase tracking-[1px] text-[#0d1f3c] sm:text-[22px]">
+          Store Management
+        </h2>
+        <p className="mt-1 text-[13px] leading-snug text-[#9aa3b2]">
+          Manage the store and products
+        </p>
       </div>
 
-      <div className="personal-info-card" style={{ borderRadius: 24, boxShadow: "0 10px 30px rgba(0,0,0,0.08)", background: "white" }}>
+      <div className="personal-info-card overflow-hidden" style={{ borderRadius: 24, boxShadow: "0 10px 30px rgba(0,0,0,0.08)", background: "white" }}>
 
         {/* ── Edit mode: ocupa todo el card ── */}
         {editingProduct ? (
@@ -233,42 +310,42 @@ export default function StoreManagement() {
         ) : (
           <>
             {/* ── Tabs ── */}
-            <div className="flex items-center gap-1 border-b border-gray-200 px-6 pt-4">
+            <div className="flex items-center gap-1 border-b border-gray-200 px-3 pt-2 sm:px-6 sm:pt-4">
               <button
                 onClick={() => setTab("list")}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+                className={`flex flex-1 items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-semibold border-b-2 transition-colors sm:flex-none sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${
                   tab === "list"
                     ? "border-blue-600 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
-                <TbLayoutGrid size={16} />
+                <TbLayoutGrid size={15} />
                 Products List
               </button>
               <button
                 onClick={() => setTab("add")}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+                className={`flex flex-1 items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-semibold border-b-2 transition-colors sm:flex-none sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${
                   tab === "add"
                     ? "border-blue-600 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
-                <FiPlus size={15} />
+                <FiPlus size={14} />
                 Add Product
               </button>
             </div>
 
             {/* ── Products List ── */}
             {tab === "list" && (
-              <div className="p-6">
-                <div className="relative mb-6">
-                  <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <div className="p-3 sm:p-6">
+                <div className="relative mb-4 sm:mb-6">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 sm:left-4" size={16} />
                   <input
                     type="text"
                     placeholder="Search products..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
+                    className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 sm:py-3 sm:pl-10"
                   />
                 </div>
 
@@ -281,7 +358,23 @@ export default function StoreManagement() {
 
                 {!loading && !error && (
                   <>
-                    <div className="overflow-x-auto">
+                    <div className="space-y-3 lg:hidden">
+                      {filtered.length === 0 ? (
+                        <p className="py-8 text-center text-sm text-gray-400">No products found.</p>
+                      ) : (
+                        filtered.map((product) => (
+                          <ProductListCard
+                            key={product.id}
+                            product={product}
+                            deletingId={deletingId}
+                            onToggleStatus={requestToggleStatus}
+                            onEdit={setEditingProduct}
+                          />
+                        ))
+                      )}
+                    </div>
+
+                    <div className="hidden lg:block">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-100">
@@ -345,7 +438,7 @@ export default function StoreManagement() {
                         </tbody>
                       </table>
                     </div>
-                    <p className="mt-4 text-xs text-gray-400">
+                    <p className="mt-3 text-xs text-gray-400 sm:mt-4">
                       Showing {filtered.length} of {products.length} products
                     </p>
                   </>

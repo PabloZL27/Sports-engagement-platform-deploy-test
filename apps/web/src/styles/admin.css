@@ -54,6 +54,46 @@
   z-index: 10;
 }
 
+.admin-sidebar-sticky {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .admin-layout {
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .admin-sidebar-sticky {
+    width: auto;
+    flex: 0 0 auto;
+    position: static;
+    padding: 0;
+    background: transparent;
+  }
+}
+
+@media (max-width: 1023px) {
+  .admin-layout {
+    gap: 8px;
+  }
+
+  .admin-sidebar-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding-top: 2px;
+    padding-bottom: 8px;
+    background: linear-gradient(to bottom, #f4f5f7 78%, rgba(244, 245, 247, 0));
+  }
+
+  .admin-sidebar-sticky .admin-sidebar-card {
+    position: static;
+    top: auto;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+  }
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -262,21 +302,85 @@
 }
 
 @media (max-width: 640px) {
+  .admin-navbar {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .admin-logo-mark {
+    width: 48px;
+    height: 48px;
+  }
+
+  .admin-brand {
+    font-size: 18px;
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .admin-section-card {
-    padding: 24px 22px;
+  .admin-section-card,
+  .admin-chart-card,
+  .admin-top-contributors-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .admin-section-card-header,
+  .admin-chart-card-header {
+    margin-bottom: 12px;
+  }
+
+  .admin-section-card-title,
+  .admin-chart-card-title {
+    font-size: 0.95rem;
+  }
+
+  .admin-section-card-list {
+    gap: 16px;
   }
 
   .admin-section-card-item {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: 8px;
+    row-gap: 6px;
     align-items: start;
+    padding-bottom: 12px;
+  }
+
+  .admin-section-card-text {
+    font-size: 0.875rem;
   }
 
   .admin-section-card-time {
     grid-column: 1;
+    font-size: 0.8125rem;
+  }
+
+  .admin-top-contributors-list {
+    gap: 10px;
+  }
+
+  .admin-top-contributors-item {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .admin-top-contributors-rank {
+    width: 34px;
+    height: 34px;
+    font-size: 0.875rem;
+  }
+
+  .admin-top-contributors-name {
+    font-size: 0.875rem;
+  }
+
+  .admin-top-contributors-meta {
+    font-size: 0.75rem;
   }
 }

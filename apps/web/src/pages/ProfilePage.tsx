@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Auth } from "../context/AuthContext";
-import Navbar from "../components/layout/Navbar";
 import SidebarMenu from "../components/Profile/SidebarMenu";
 import PersonalInfo from "../components/Profile/PersonalInfo";
 import Addresses from "../components/Profile/Addresses";
@@ -135,22 +134,20 @@ function ProfilePage() {
     last_name: string;
     username: string;
     }) => {
+    const payload: UpdateProfilePayload = {
+      first_name: formData.first_name?.trim() || null,
+      last_name: formData.last_name?.trim() || null,
+      username: formData.username?.trim() || null,
+      country: profile?.country || null,
+      avatar_url: profile?.avatar_url || null,
+    };
+
     try {
-        const payload: UpdateProfilePayload = {
-        first_name: formData.first_name?.trim() || null,
-        last_name: formData.last_name?.trim() || null,
-        username: formData.username?.trim() || null,
-        country: profile?.country || null,
-        avatar_url: profile?.avatar_url || null,
-        };
-
-        const updatedProfile = await updateMyProfile(payload);
-        setProfile(updatedProfile);
-
-        console.log("Profile updated successfully");
+      const updatedProfile = await updateMyProfile(payload);
+      setProfile(updatedProfile);
     } catch (error) {
-        console.error("Error updating profile:", error);
-        alert("Could not update profile.");
+      console.error("Error updating profile:", error);
+      throw error;
     }
     };
 
@@ -336,7 +333,6 @@ function ProfilePage() {
     return (
       <div className="profile-page">
         <main className="profile-container">
-          <Navbar />
           <div className="profile-page-wrapper">
             <p>Loading profile...</p>
           </div>
@@ -349,8 +345,6 @@ function ProfilePage() {
     <>
       <div className="profile-page">
         <main className="profile-container">
-          <Navbar />
-
           <section className="profile-header">
             <h1 className="profile-title">MY PROFILE</h1>
             <p className="profile-subtitle">
@@ -407,7 +401,7 @@ function ProfilePage() {
         <ModalComp
           isOpen={isDetailsOpen}
           onOpenChange={setIsDetailsOpen}
-          dialogClassName="w-[min(45vw,72rem)] max-w-none"
+          dialogClassName="w-[calc(100vw-2rem)] max-w-3xl sm:w-[min(45vw,72rem)] sm:max-w-none"
           children={
             selectedPost && (
               <div className="space-y-6">

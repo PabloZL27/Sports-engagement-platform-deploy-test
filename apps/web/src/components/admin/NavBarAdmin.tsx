@@ -18,7 +18,7 @@ function NavBarAdmin() {
       </div>
 
       <div className="admin-navbar-actions">
-        <SignOutButton />
+        <SignOutButton requireConfirmation />
       </div>
     </nav>
   );

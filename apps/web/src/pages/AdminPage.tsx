@@ -17,11 +17,13 @@ function AdminPage() {
     <div className="home-page">
       <main className="home-container">
         <NavBarAdmin />
-        <section className="profile-layout">
-          <SidebarMenuAdmin
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+        <section className="profile-layout admin-layout">
+          <aside className="admin-sidebar-sticky">
+            <SidebarMenuAdmin
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          </aside>
 
           <div className="profile-content">
             {activeTab === "dashboard" && <Dashboard />}

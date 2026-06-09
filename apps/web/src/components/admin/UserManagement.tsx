@@ -59,7 +59,7 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className={`cursor-pointer rounded-full border px-7 py-2.5 text-base font-semibold transition ${
+      className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-semibold transition sm:px-7 sm:py-2.5 sm:text-base ${
         active
           ? "border-[#0d1f3c] bg-[#0d1f3c] text-white"
           : "border-[#d0d4e0] bg-white text-[#3a4560]"
@@ -273,47 +273,34 @@ function UserManagement() {
   }
 
   const userReportStats = [
-    {
-      label: "Pending",
-      value: stats.pending,
-      description: "Pending",
-    },
-    {
-      label: "Critical",
-      value: stats.critical,
-      description: "Critical",
-    },
-    {
-      label: "Banned this month",
-      value: stats.banned,
-      description: "Banned this month",
-    },
+    { label: "Pending", value: stats.pending },
+    { label: "Critical", value: stats.critical },
+    { label: "Banned", value: stats.banned },
   ];
 
   return (
     <div className="w-full">
-      <div className="mb-7">
-        <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
-          REPORTED USERS
+      <div className="mb-4 sm:mb-6">
+        <h2 className="m-0 text-lg font-extrabold uppercase tracking-[1px] text-[#0d1f3c] sm:text-[22px]">
+          User Reports
         </h2>
-        <p className="mt-2.5 text-[0.95rem] text-[#9aa3af]">
+        <p className="mt-1 text-[13px] leading-snug text-[#9aa3b2]">
           Review and moderation of users reported by the community
         </p>
       </div>
 
-      <Card className="rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
-        <div className="px-4 py-4">
-          <div className="mb-5 grid grid-cols-3 gap-3 max-[1200px]:grid-cols-2 max-[640px]:grid-cols-1">
+      <Card className="rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] sm:rounded-[24px]">
+        <div className="flex flex-col gap-4 p-3 sm:p-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {userReportStats.map((stat) => (
               <GridCard
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}
-                description={stat.description}
               />
             ))}
           </div>
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {(["all", "pending", "critical", "resolved"] as ReportFilterKey[]).map(
               (f) => (
                 <FilterChip
@@ -326,17 +313,17 @@ function UserManagement() {
             )}
           </div>
           {error ? (
-            <p className="mb-4 text-[14px] font-semibold text-[#b42318]">
+            <p className="rounded-2xl bg-[#fff3f3] px-4 py-3 text-sm font-semibold text-[#b42318] sm:text-[14px]">
               {error}
             </p>
           ) : null}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             {isLoading ? (
-              <p className="text-[15px] font-semibold text-[#8a94ab]">
+              <p className="m-0 rounded-2xl bg-[#f7f8fc] px-4 py-4 text-sm font-semibold text-[#8a94ab] sm:px-6 sm:py-5 sm:text-[15px]">
                 Loading reports...
               </p>
             ) : filteredReports.length === 0 ? (
-              <p className="text-[15px] font-semibold text-[#8a94ab]">
+              <p className="m-0 rounded-2xl bg-[#f7f8fc] px-4 py-4 text-sm font-semibold text-[#8a94ab] sm:px-6 sm:py-5 sm:text-[15px]">
                 No user reports to display.
               </p>
             ) : (

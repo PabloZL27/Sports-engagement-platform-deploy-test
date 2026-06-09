@@ -142,33 +142,33 @@ export default function PostCard({
   return (
     <>
       <Card
-        className="border-l-4 border-blue-500 transition-shadow hover:shadow-md cursor-pointer"
+        className="w-full min-w-0 cursor-pointer overflow-hidden border-l-4 border-blue-500 transition-shadow hover:shadow-md"
         onClick={() => onClick?.(post.post_id)}
       >
-        <div className="p-6">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-sky-700">
+        <div className="min-w-0 p-4 sm:p-6">
+          <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="shrink-0 rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-sky-700 sm:px-3 sm:text-xs">
                 {post.category_name}
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="shrink-0 text-[11px] text-gray-500 sm:text-xs">
                 {getPostTime(post.created_at || "")}
               </span>
             </div>
 
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 aria-label="Post options"
                 aria-expanded={isReportMenuOpen}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-100"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-100 sm:h-9 sm:w-9"
                 onClick={() => setIsReportMenuOpen((isOpen) => !isOpen)}
               >
-                <Icon icon="mdi:dots-horizontal" width={22} />
+                <Icon icon="mdi:dots-horizontal" width={20} />
               </button>
 
               {isReportMenuOpen && (
-                <div className="absolute right-0 top-11 z-20 w-44 rounded-xl border border-gray-200 bg-white p-1 shadow-[0_12px_36px_rgba(15,23,42,0.16)]">
+                <div className="absolute right-0 top-10 z-20 w-40 rounded-xl border border-gray-200 bg-white p-1 shadow-[0_12px_36px_rgba(15,23,42,0.16)] sm:w-44">
                   <button
                     type="button"
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-[#344363] transition hover:bg-gray-100"
@@ -182,14 +182,16 @@ export default function PostCard({
             </div>
           </div>
 
-          <h3 className="mb-3 text-lg font-bold text-gray-900">{post.title}</h3>
+          <h3 className="mb-3 line-clamp-2 text-base font-bold text-[#0B2A55] sm:text-lg">
+            {post.title}
+          </h3>
 
-          <div className="mb-4 flex items-start gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-700">
+          <div className="mb-4 flex min-w-0 items-start gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-700">
                 {getInitials(post.user_name)}
               </div>
-              <span className="text-sm font-semibold text-gray-900">
+              <span className="truncate text-sm font-semibold text-gray-900">
                 {post.user_name}
               </span>
             </div>
@@ -205,10 +207,10 @@ export default function PostCard({
           )}
 
           {showActions && (
-            <div className="flex items-center gap-6 border-t border-gray-100 pt-3 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-gray-100 pt-3 text-xs text-gray-500 sm:gap-6 sm:text-sm">
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-md p-1 hover:cursor-pointer hover:bg-gray-100"
+                className="flex items-center gap-1.5 rounded-md p-1 hover:cursor-pointer hover:bg-gray-100 sm:gap-2"
                 onClick={(e) => {
                   e.stopPropagation();
                   onOpenDetail?.(post);
@@ -218,13 +220,16 @@ export default function PostCard({
                 <span className="font-semibold text-gray-900">
                   {post.replies_count ?? 0}
                 </span>
-                <span>Replies</span>
+                <span className="hidden sm:inline">Replies</span>
               </button>
 
-              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="flex items-center gap-1.5 sm:gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Icon icon="mdi:eye-outline" width={18} />
                 <span className="font-semibold text-gray-900">{post.views_count}</span>
-                <span>Views</span>
+                <span className="hidden sm:inline">Views</span>
               </div>
 
               <button
@@ -233,14 +238,14 @@ export default function PostCard({
                   e.stopPropagation();
                   onLike?.(post.post_id);
                 }}
-                className={`flex items-center gap-2 rounded-full px-2 py-1 transition-colors ${
-                  isLiked ? "bg-gray-100 text-gray-500 cursor-default" : "hover:bg-gray-100"
+                className={`flex items-center gap-1.5 rounded-full px-2 py-1 transition-colors sm:gap-2 ${
+                  isLiked ? "cursor-default bg-gray-100 text-gray-500" : "hover:bg-gray-100"
                 }`}
                 disabled={isLiked}
               >
                 <Icon icon="mdi:thumb-up-outline" width={18} />
                 <span className="font-semibold text-gray-900">{post.upvotes_count}</span>
-                <span>Upvotes</span>
+                <span className="hidden sm:inline">Upvotes</span>
               </button>
             </div>
           )}
@@ -249,21 +254,21 @@ export default function PostCard({
 
       {isReportModalOpen && (
         <div
-          className="fixed inset-0 z-[1000] flex items-center justify-center bg-[#0b1220]/55 p-4 backdrop-blur-[6px]"
+          className="fixed inset-0 z-[1000] flex items-end justify-center overflow-y-auto bg-[#0b1220]/55 p-4 backdrop-blur-[6px] sm:items-center"
           onClick={closeReportModal}
         >
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="report-post-title"
-            className="w-full max-w-[520px] rounded-[22px] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.30)]"
+            className="my-auto w-full max-w-[min(100%,520px)] max-h-[min(90vh,720px)] overflow-y-auto rounded-[22px] bg-white p-4 shadow-[0_24px_80px_rgba(15,23,42,0.30)] sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
                 <h2
                   id="report-post-title"
-                  className="m-0 text-[24px] font-extrabold leading-tight text-[#15233d]"
+                  className="m-0 text-xl font-extrabold leading-tight text-[#15233d] sm:text-2xl"
                 >
                   Report post
                 </h2>
@@ -288,7 +293,7 @@ export default function PostCard({
                   key={reason.label}
                   type="button"
                   disabled={isSubmittingReport}
-                  className={`rounded-[14px] border-2 px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`rounded-[14px] border-2 px-3 py-2.5 text-left transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3 ${
                     selectedReason === reason.label
                       ? "border-[#0d1f3c] bg-[#f4f7fb]"
                       : "border-[#d7dce6] bg-white hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
@@ -298,7 +303,7 @@ export default function PostCard({
                     setReportError(null);
                   }}
                 >
-                  <span className="block text-[15px] font-extrabold text-[#15233d]">
+                  <span className="block text-sm font-extrabold text-[#15233d] sm:text-[15px]">
                     {reason.label}
                   </span>
                 </button>

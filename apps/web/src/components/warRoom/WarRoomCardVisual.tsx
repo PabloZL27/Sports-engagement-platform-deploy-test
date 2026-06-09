@@ -125,29 +125,39 @@ export function WarRoomCardVisual({
 
   return (
     <div
-      className={`flex flex-col overflow-hidden rounded-xl border-2 bg-[#0f1b2d] ${chrome} ${className}`}
+      className={`flex min-w-0 flex-col overflow-hidden rounded-lg border-2 bg-[#0f1b2d] sm:rounded-xl ${chrome} ${className}`}
     >
       <HeadshotArea
         headshotUrl={headshotUrl}
         displayName={displayName}
         tier={tier}
         heightClass={
-          isScout ? "h-28 w-full" : isCompact ? "h-[4.5rem] w-full" : "h-28 w-full"
+          isScout
+            ? "h-[4.5rem] w-full sm:h-28"
+            : isCompact
+              ? "h-[4.5rem] w-full"
+              : "h-28 w-full"
         }
       />
       <div
-        className={`flex flex-col gap-0.5 ${isCompact ? "p-1.5" : "p-2 gap-1"}`}
+        className={`flex min-w-0 flex-col gap-0.5 ${
+          isScout ? "p-1.5 sm:p-2 sm:gap-1" : isCompact ? "p-1.5" : "gap-1 p-2"
+        }`}
       >
         <p
-          className={`font-black text-white leading-tight truncate ${
-            isCompact ? "text-[10px]" : "text-xs"
+          className={`min-w-0 font-black leading-tight text-white ${
+            isScout
+              ? "line-clamp-2 text-[9px] sm:truncate sm:text-xs"
+              : isCompact
+                ? "truncate text-[10px]"
+                : "truncate text-xs"
           }`}
         >
           {displayName}
         </p>
         <p
           className={`text-gray-400 uppercase tracking-wide ${
-            isCompact ? "text-[9px]" : "text-[10px]"
+            isScout ? "text-[8px] sm:text-[10px]" : isCompact ? "text-[9px]" : "text-[10px]"
           }`}
         >
           {position}
@@ -156,7 +166,11 @@ export function WarRoomCardVisual({
           <RarityBadge rarity={rarity} size="sm" />
         ) : (
           <span
-            className={`self-start rounded-full px-2 py-0.5 text-[10px] font-bold ${tierStyle.bg} ${tierStyle.text}`}
+            className={`self-start rounded-full font-bold ${
+              isScout
+                ? "px-1.5 py-0.5 text-[8px] sm:px-2 sm:text-[10px]"
+                : "px-2 py-0.5 text-[10px]"
+            } ${tierStyle.bg} ${tierStyle.text}`}
           >
             {tierStyle.label}
           </span>

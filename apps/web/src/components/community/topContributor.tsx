@@ -44,7 +44,7 @@ export default function TopContributor() {
 
 
   return (
-    <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+    <section className="w-full min-w-0 rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-6">
       <div className="flex items-start gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -54,20 +54,20 @@ export default function TopContributor() {
             </span>
           </div>
 
-          <div className="mt-4 flex items-center gap-4">
+          <div className="mt-4 flex min-w-0 items-center gap-4">
             <div
               aria-hidden
-              className="h-16 w-16 shrink-0 rounded-full flex items-center justify-center text-white font-bold"
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
               style={{
                 background: "linear-gradient(135deg, #123B7A, #0B2A55)",
                 boxShadow: "inset 0 -6px 18px rgba(0,0,0,0.14)",
-                }}
+              }}
             >
-              <span className="text-lg">{getInitials(topUser?.username)}</span>
+              <span>{getInitials(topUser?.username)}</span>
             </div>
 
-            <div>
-              <p  className="text-lg font-semibold text-[#0B2A55]">{topUser?.username}</p>
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-[#0B2A55] sm:text-lg">{topUser?.username}</p>
               <p className="text-sm text-slate-500">{points} points</p>
             </div>
           </div>

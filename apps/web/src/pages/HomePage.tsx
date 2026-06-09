@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/layout/Navbar";
 import CarouselHome from "../components/home/CarouselHome";
 import MatchesCard from "../components/home/MatchesCard";
 import NewsHome from "../components/home/NewsHome";
@@ -92,11 +91,11 @@ function HomePage() {
 
   return (
     <div className="home-page">
-      <main className="home-container">
-        <Navbar />
-
+      <header className="home-hero-header">
         <CarouselHome />
+      </header>
 
+      <main className="home-container">
         <MatchesCard />
 
         <section className="home-section">
@@ -124,9 +123,9 @@ function HomePage() {
           </div>
         </section>
         <section className="home-section">
-          <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:gap-6">
             {classicMatchesLoading ? (
-              <article className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:col-span-2">
+              <article className="col-span-full rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:col-span-2">
                 Loading highlights...
               </article>
             ) : null}
@@ -134,13 +133,13 @@ function HomePage() {
             {!classicMatchesLoading &&
             classicMatches.length === 0 &&
             !classicMatchesError ? (
-              <article className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:col-span-2">
+              <article className="col-span-full rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:col-span-2">
                 No classic matches available.
               </article>
             ) : null}
 
             {classicMatchesError ? (
-              <article className="rounded-2xl border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:col-span-2">
+              <article className="col-span-full rounded-2xl border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:col-span-2">
                 {classicMatchesError}
               </article>
             ) : null}
@@ -168,7 +167,7 @@ function HomePage() {
                 Loading products...
               </div>
             ) : (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
                 {bestSellers.map((product) => (
                   <ProductPreviewCard key={product.id} product={product} />
                 ))}

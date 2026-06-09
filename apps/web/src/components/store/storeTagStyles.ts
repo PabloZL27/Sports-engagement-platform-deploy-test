@@ -3,7 +3,7 @@ import type { StoreProduct } from '../../types';
 /** Palette: Cerulean #0081AF · Sky Aqua #2DC7FF · Sunlit Clay #EABA6B · French Blue #2B4570 · Taupe #A37A74 · Teal #107E7D · Tech Blue #275DAD */
 
 const TAG_BASE =
-  'inline-flex items-center rounded-full border-2 px-3 py-1 text-xs font-bold tracking-wide shadow-sm';
+  'inline-flex shrink-0 items-center whitespace-nowrap rounded-full border-2 px-1.5 py-0.5 text-[10px] font-bold leading-none tracking-wide shadow-sm sm:px-3 sm:py-1 sm:text-xs';
 
 export const RARITY_TAG_CLASS: Record<StoreProduct['rarity'], string> = {
   New: 'border-[#2DC7FF] bg-[#2DC7FF]/25 text-[#005F7A]',

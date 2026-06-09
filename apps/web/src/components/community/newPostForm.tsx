@@ -25,18 +25,39 @@ export const NewPostForm = (props: NewPostFormProps) => {
     const [title, setTitle] = useState<string>("");
     const [postContent, setPostContent] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>("");
+
+    const getValidationError = () => {
+        const missingFields: string[] = [];
+
+        if (!category.trim()) missingFields.push("category");
+        if (!title.trim()) missingFields.push("title");
+        if (!postContent.trim()) missingFields.push("content");
+
+        if (missingFields.length === 0) return "";
+
+        return `Please fill in ${missingFields.join(", ")} before posting.`;
+    };
 
     const handleNewPost = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const validationError = getValidationError();
+
+        if (validationError) {
+            setErrorMessage(validationError);
+            return;
+        }
+
         try {
             setLoading(true);
+            setErrorMessage("");
 
             const currentUserId =
                 session?.user?.id ||
                 (await supabase.auth.getSession()).data.session?.user?.id;
 
             if (!currentUserId) {
-                console.error("Missing user id in session");
+                setErrorMessage("You need to be signed in to create a post.");
                 return;
             }
             await createPost({
@@ -46,12 +67,13 @@ export const NewPostForm = (props: NewPostFormProps) => {
                 content:postContent
             });
             onSuccess();
+            onSwitchOpenModal(false);
         } catch(error) {
+            const message = error instanceof Error ? error.message : "Failed to create the post.";
+            setErrorMessage(message);
             console.error(error);
-            setLoading(false);
         } finally {
             setLoading(false);
-            onSwitchOpenModal(false);
         }
     }
 
@@ -95,6 +117,11 @@ export const NewPostForm = (props: NewPostFormProps) => {
                     className="h-32 w-full"
                     onChange={(e) => setPostContent(e.target.value)}
                 />
+                {errorMessage && (
+                    <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {errorMessage}
+                    </div>
+                )}
                 <div className="mt-6 flex justify-end gap-3 border-t border-slate-200 pt-6">
                     <Button
                         type="button"
@@ -107,6 +134,7 @@ export const NewPostForm = (props: NewPostFormProps) => {
                     <Button
                         type="submit"
                         className="h-11 rounded-xl bg-[#1E2B44] px-5 font-semibold text-white"
+                        isDisabled={loading}
                     >
                         Post
                     </Button>

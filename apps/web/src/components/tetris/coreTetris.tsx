@@ -45,17 +45,17 @@ const Tetris = ({
 		const accessToken = session?.access_token;
 
 		if (!accessToken) {
-			onStatusMessageChange?.("Sign in to save your Tetris scores.");
+			onStatusMessageChange?.("Sign in to save your Titans Cubic scores.");
 			return;
 		}
 
 		setIsSaving(true);
-		onStatusMessageChange?.("Saving Tetris score...");
+		onStatusMessageChange?.("Saving Titans Cubic score...");
 
 		try {
 			const response = await saveTetrisSession(payload, accessToken);
 			onLeaderboardChange?.(response.leaderboard);
-			onStatusMessageChange?.("Tetris score saved.");
+			onStatusMessageChange?.("Titans Cubic score saved.");
 		} catch (error) {
 			console.error("Error saving Tetris session:", error);
 			onStatusMessageChange?.(

@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Card, Input, Button, Avatar } from "@heroui/react";
+import { Card, Input, Button } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { SignOutButton } from "../auth/Signout";
+
+type SaveFeedback = {
+  type: "success" | "error";
+  message: string;
+};
 
 type ProfileData = {
   first_name: string;
@@ -12,7 +17,7 @@ type ProfileData = {
 
 type PersonalInfoProps = {
   profile: ProfileData | null;
-  onSave?: (data: ProfileData) => void;
+  onSave?: (data: ProfileData) => Promise<void>;
   onAvatarUpload?: (file: File) => Promise<void>;
 };
 
@@ -22,6 +27,8 @@ export default function PersonalInfo({
   onAvatarUpload,
 }: PersonalInfoProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
 
   const [formData, setFormData] = useState<ProfileData>({
     first_name: "",
@@ -41,8 +48,35 @@ export default function PersonalInfo({
     }
   }, [profile]);
 
+  useEffect(() => {
+    if (!saveFeedback) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setSaveFeedback(null);
+    }, 4000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [saveFeedback]);
+
   const handleSubmit = async () => {
-    await onSave?.(formData);
+    if (!onSave) return;
+
+    try {
+      setIsSaving(true);
+      setSaveFeedback(null);
+      await onSave(formData);
+      setSaveFeedback({
+        type: "success",
+        message: "Your profile has been updated successfully.",
+      });
+    } catch {
+      setSaveFeedback({
+        type: "error",
+        message: "Could not update profile. Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,14 +189,27 @@ export default function PersonalInfo({
             </div>
           </div>
 
+          {saveFeedback && (
+            <p
+              className={`profile-feedback profile-feedback--${saveFeedback.type}`}
+              role="status"
+            >
+              {saveFeedback.message}
+            </p>
+          )}
+
           <div className="personal-info-actions">
-            <Button className="save-btn" onPress={handleSubmit}>
+            <Button
+              className="save-btn"
+              onPress={() => void handleSubmit()}
+              isDisabled={isSaving}
+            >
               <Icon icon="solar:diskette-bold" width={18} />
-              <span>Save Changes</span>
+              <span>{isSaving ? "Saving..." : "Save Changes"}</span>
             </Button>
 
             <div className="signout-wrapper">
-              <SignOutButton />
+              <SignOutButton requireConfirmation />
             </div>
           </div>
         </div>

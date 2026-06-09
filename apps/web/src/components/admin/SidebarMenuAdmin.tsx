@@ -9,6 +9,7 @@ type SidebarMenuProps = {
 function SidebarMenuAdmin({ activeTab, setActiveTab }: SidebarMenuProps) {
   return (
     <Card className="profile-sidebar-card admin-sidebar-card">
+      <div className="profile-sidebar-scroll">
       <button
         className={`profile-sidebar-item ${activeTab === "dashboard" ? "active" : ""}`}
         onClick={() => setActiveTab("dashboard")}
@@ -42,6 +43,7 @@ function SidebarMenuAdmin({ activeTab, setActiveTab }: SidebarMenuProps) {
       >
         Suggestion Box
       </button>
+      </div>
     </Card>
   );
 }

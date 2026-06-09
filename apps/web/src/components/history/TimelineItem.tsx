@@ -150,59 +150,61 @@ function TimelineItem({ event, index, onOpenStory }: TimelineItemProps) {
           aria-label={`Open full story for ${event.title}`}
           onClick={handleOpenStory}
           onKeyDown={handleKeyDown}
-          className="group w-full max-w-[540px] cursor-pointer overflow-hidden rounded-[24px] border border-[#dbe3ef] bg-white shadow-[0_14px_34px_rgba(15,23,42,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(15,23,42,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4B92DB] focus-visible:ring-offset-2"
+          className="group w-full min-w-0 cursor-pointer overflow-hidden rounded-[20px] border border-[#dbe3ef] bg-white shadow-[0_14px_34px_rgba(15,23,42,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(15,23,42,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4B92DB] focus-visible:ring-offset-2"
         >
-          <div className={`grid min-h-[220px] ${currentImageSrc ? "grid-cols-[44%_56%]" : "grid-cols-1"}`}>
-            {currentImageSrc ? (
-              <div className="overflow-hidden bg-[#e9eef4]">
-                <img
-                  src={currentImageSrc}
-                  alt={event.alt}
-                  onError={() => setImageIndex((current) => current + 1)}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                />
-              </div>
-            ) : null}
-
-            <div className="flex flex-col justify-between space-y-4 p-5">
-              <div className="space-y-4">
-                <span className="inline-flex items-center rounded-full bg-[#eef4fb] px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.10em] text-[#4B92DB]">
-                  Titans Legacy
-                </span>
-
-                <div className="space-y-2">
-                  <h3 className="text-[21px] font-extrabold leading-[1.08] text-[#002244]">
-                    {event.title}
-                  </h3>
-                  <p className="line-clamp-4 text-[14px] leading-[1.7] text-slate-600">
-                    {event.description}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={(mouseEvent) => {
-                  mouseEvent.stopPropagation();
-                  handleOpenStory();
-                }}
-                className="inline-flex items-center gap-2 border-none bg-transparent p-0 text-[14px] font-bold text-[#4B92DB]"
-              >
-                {event.linkLabel}
-                <svg
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 12 12"
-                >
-                  <path d="M2.5 6h7m-3-3 3 3-3 3" />
-                </svg>
-              </button>
+          {currentImageSrc ? (
+            <div className="h-[168px] overflow-hidden bg-[#e9eef4] sm:h-[190px]">
+              <img
+                src={currentImageSrc}
+                alt={event.alt}
+                onError={() => setImageIndex((current) => current + 1)}
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+              />
             </div>
+          ) : (
+            <div className="flex h-[120px] items-center justify-center bg-[linear-gradient(135deg,#002244_0%,#4B92DB_100%)] text-[28px] font-extrabold tracking-[0.10em] text-white">
+              {event.year}
+            </div>
+          )}
+
+          <div className="flex flex-col justify-between gap-4 p-4">
+            <div className="space-y-3">
+              <span className="inline-flex items-center rounded-full bg-[#eef4fb] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.10em] text-[#4B92DB]">
+                Titans Legacy
+              </span>
+
+              <div className="space-y-2">
+                <h3 className="text-lg font-extrabold leading-[1.1] text-[#002244]">
+                  {event.title}
+                </h3>
+                <p className="line-clamp-3 text-[13px] leading-[1.65] text-slate-600">
+                  {event.description}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={(mouseEvent) => {
+                mouseEvent.stopPropagation();
+                handleOpenStory();
+              }}
+              className="inline-flex items-center gap-2 border-none bg-transparent p-0 text-[13px] font-bold text-[#4B92DB]"
+            >
+              {event.linkLabel}
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 12 12"
+              >
+                <path d="M2.5 6h7m-3-3 3 3-3 3" />
+              </svg>
+            </button>
           </div>
         </article>
       </div>

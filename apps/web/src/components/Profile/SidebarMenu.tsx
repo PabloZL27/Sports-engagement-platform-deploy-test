@@ -9,6 +9,7 @@ type SidebarMenuProps = {
 function SidebarMenu({ activeTab, setActiveTab }: SidebarMenuProps) {
   return (
     <Card className="profile-sidebar-card">
+      <div className="profile-sidebar-scroll">
       <button
         className={`profile-sidebar-item ${activeTab === "personal" ? "active" : ""}`}
         onClick={() => setActiveTab("personal")}
@@ -36,6 +37,7 @@ function SidebarMenu({ activeTab, setActiveTab }: SidebarMenuProps) {
       >
         Posts History
       </button>
+      </div>
     </Card>
   );
 }

@@ -60,7 +60,6 @@ function StatBlock({
 export default function PlayerCard({ card, onViewStats }: PlayerCardProps) {
   const {
     src: headshotSrc,
-    showPlaceholder,
     onImgError,
     onImgLoad,
     loaded,
@@ -81,11 +80,11 @@ export default function PlayerCard({ card, onViewStats }: PlayerCardProps) {
 
   return (
     <article
-      className="group relative mx-auto w-full max-w-sm [perspective:1200px]"
+      className="group relative w-full min-w-0 [perspective:1200px]"
       aria-label={`${card.display_name} card. Hover to flip for vitals.`}
     >
       <div
-        className={`relative aspect-[3/4] w-full rounded-xl border-2 bg-gradient-to-b from-gray-900 to-gray-800 shadow-lg transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] [transform-style:preserve-3d] will-change-transform motion-reduce:duration-200 ${borderGlow} [@media(hover:hover)]:group-hover:[transform:rotateY(180deg)_scale(1.03)] [@media(hover:hover)]:group-hover:shadow-2xl motion-reduce:[@media(hover:hover)]:group-hover:[transform:none]`}
+        className={`relative aspect-[3/4] w-full rounded-xl border-2 bg-gradient-to-b from-gray-900 to-gray-800 shadow-lg transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] [transform-style:preserve-3d] will-change-transform motion-reduce:duration-200 ${borderGlow} [@media(hover:hover)]:group-hover:[transform:rotateY(180deg)] [@media(hover:hover)]:group-hover:shadow-2xl motion-reduce:[@media(hover:hover)]:group-hover:[transform:none]`}
       >
         {/* Front — translateZ evita que hijos con su propia capa (img, z-index) ignoren backface-visibility */}
         <div
@@ -120,17 +119,6 @@ export default function PlayerCard({ card, onViewStats }: PlayerCardProps) {
                 className={`absolute inset-0 z-[1] h-full w-full object-cover object-top [transform:translate3d(0,0,0.02px)] [backface-visibility:hidden] ${RARITY_HEADSHOT_IMAGE_OPACITY[card.rarity]} ${loaded ? "opacity-100" : "opacity-0"}`}
                 style={{ WebkitBackfaceVisibility: "hidden" }}
               />
-            ) : null}
-
-            {/* Placeholder mientras carga / o si se agotaron URLs */}
-            {showPlaceholder || !loaded ? (
-              <div className="absolute inset-0 z-[1] flex items-center justify-center">
-                <div className="flex size-24 items-center justify-center rounded-full bg-black/35 ring-2 ring-white/20 backdrop-blur-[2px]">
-                  <span className="text-3xl font-bold text-white">
-                    {card.display_name.charAt(0)}
-                  </span>
-                </div>
-              </div>
             ) : null}
           </div>
 

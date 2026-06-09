@@ -162,4 +162,6 @@ export interface PackOpeningState {
   ready_at?: string;
   /** Seconds until ready (0 when READY). */
   seconds_remaining?: number;
+  /** Total wait configured for this opening (exponential per pack). */
+  opening_seconds?: number;
 }

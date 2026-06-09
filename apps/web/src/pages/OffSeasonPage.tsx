@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../components/layout/Navbar";
 import TitansTossPanel from "../components/titansToss/TitansTossPanel";
 import WordleGame from "../components/wordle/WordleGame";
 import Tetris from "../components/tetris/coreTetris";
@@ -21,11 +20,9 @@ function OffSeasonPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-350 p-6">
-        <Navbar />
-
-        <section className="mb-9 flex flex-wrap items-start justify-between gap-6 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] px-10 py-10.5 text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
-          <h1 className="m-0 text-[58px] leading-[1.05] font-black">OFF-SEASON</h1>
+      <main className="page-main">
+        <section className="hero-section">
+          <h1 className="hero-title">OFF-SEASON</h1>
         </section>
 
         <section className="grid gap-5">
@@ -73,7 +70,7 @@ function OffSeasonPage() {
               }`}
               onClick={() => setActiveTab("tetris")}
             >
-              Tetris
+              Titans Cubic
             </button>
 
           </div>
@@ -148,13 +145,13 @@ function OffSeasonPage() {
               <section className="rounded-2xl border border-[#d8dee5] bg-white p-6 shadow-[0_24px_50px_rgba(15,39,70,0.08)]">
                 <header className="mb-5 flex items-start justify-between gap-4">
                   <div>
-                    <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">TETRIS</p>
-                    <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">Titans Cubic Adventure</h2>
-                    <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">Stack, rotate, and clear lines as long as you can. Test your reflexes, strategy, and speed in this Tetris challenge only true Titans can survive!</p>
+                    <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">TITANS CUBIC</p>
+                    <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">Titans Cubic Journey</h2>
+                    <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">Stack, rotate, and clear lines as long as you can. Test your reflexes, strategy, and speed in this Titans Cubic challenge only true Titans can survive!</p>
                   </div>
                   <button
                     type="button"
-                    aria-label="How to play Tetris"
+                    aria-label="How to play Titans Cubic"
                     className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[#4B92DB] text-[22px] font-black leading-none text-white shadow-[0_4px_12px_rgba(0,0,0,0.18)] transition hover:bg-[#3d7fc2]"
                     onClick={() => setIsTetrisInstructionsOpen(true)}
                   >

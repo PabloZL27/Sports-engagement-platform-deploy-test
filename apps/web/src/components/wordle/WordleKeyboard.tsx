@@ -1,8 +1,10 @@
 import type { WordleKeyboardStatus, WordleTileStatus } from "../../hooks/useWordle";
 
-const rows = ["QWERTYUIOP", "ASDFGHJKL", "ENTERZXCVBNMDEL"];
-const KEY_BASE_CLASS =
-  "h-12 min-w-11 cursor-pointer rounded-lg font-bold transition-colors max-[900px]:h-11 max-[900px]:min-w-9 max-[900px]:text-xs";
+const KEY_ROWS: string[][] = [
+  "QWERTYUIOP".split(""),
+  "ASDFGHJKL".split(""),
+  ["ENTER", ..."ZXCVBNM".split(""), "DEL"],
+];
 
 const keyStatusStyles: Record<WordleTileStatus, string> = {
   correct: "border-[#2a9d8f] bg-[#2a9d8f] text-white",
@@ -12,23 +14,7 @@ const keyStatusStyles: Record<WordleTileStatus, string> = {
 };
 
 function normalizeKey(key: string): string {
-  if (key === "DEL") {
-    return "DEL";
-  }
-
-  if (key === "ENTER") {
-    return "ENTER";
-  }
-
   return key;
-}
-
-function splitRow(row: string): string[] {
-  if (row.includes("ENTER")) {
-    return ["ENTER", ..."ZXCVBNM".split(""), "DEL"];
-  }
-
-  return row.split("");
 }
 
 interface WordleKeyboardProps {
@@ -38,10 +24,13 @@ interface WordleKeyboardProps {
 
 function WordleKeyboard({ keyboardStatus, onKeyPress }: WordleKeyboardProps) {
   return (
-    <div className="grid gap-2.5">
-      {rows.map((row) => (
-        <div key={row} className="flex flex-wrap justify-center gap-2">
-          {splitRow(row).map((key) => {
+    <div className="mx-auto w-full max-w-[min(100%,520px)] select-none">
+      {KEY_ROWS.map((row, rowIndex) => (
+        <div
+          key={rowIndex}
+          className="mb-1.5 flex w-full flex-nowrap items-stretch justify-center gap-[3px] last:mb-0 sm:mb-2 sm:gap-1.5"
+        >
+          {row.map((key) => {
             const status = keyboardStatus[normalizeKey(key)] ?? "empty";
             const isWide = key === "ENTER" || key === "DEL";
 
@@ -50,9 +39,14 @@ function WordleKeyboard({ keyboardStatus, onKeyPress }: WordleKeyboardProps) {
                 key={key}
                 type="button"
                 onClick={() => onKeyPress(key)}
-                className={`border ${KEY_BASE_CLASS} ${keyStatusStyles[status]} ${
-                  isWide ? "min-w-20 max-[900px]:min-w-16" : ""
-                }`}
+                className={[
+                  "flex items-center justify-center rounded-md border font-bold transition-colors",
+                  "h-11 min-w-0 text-[11px] sm:h-12 sm:rounded-lg sm:text-sm",
+                  isWide
+                    ? "flex-[1.35] px-1 sm:flex-[1.4] sm:px-2"
+                    : "flex-1 max-w-[2.75rem] sm:max-w-[3.25rem]",
+                  keyStatusStyles[status],
+                ].join(" ")}
               >
                 {key}
               </button>

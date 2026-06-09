@@ -18,3 +18,112 @@
     text-shadow: none;
   }
 }
+
+/* ── Matches page hero ── */
+.matches-hero {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+}
+
+.matches-hero-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.matches-hero-subtitle {
+  margin: 0;
+  font-size: clamp(0.9rem, 2.8vw, 1.25rem);
+  line-height: 1.45;
+  color: rgba(219, 234, 254, 0.95);
+  max-width: 42ch;
+}
+
+.matches-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin-top: 4px;
+}
+
+.matches-hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.matches-hero-stat-number {
+  font-size: clamp(1.75rem, 7vw, 2.5rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.matches-hero-stat-label {
+  font-size: clamp(0.78rem, 2.5vw, 1.05rem);
+  line-height: 1.3;
+  color: rgba(219, 234, 254, 0.9);
+}
+
+.matches-hero-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.matches-hero-filter-btn {
+  height: auto !important;
+  min-height: 44px;
+  min-width: 0 !important;
+  width: 100%;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  padding: 10px 14px !important;
+  font-size: clamp(0.85rem, 2.5vw, 1.05rem) !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+}
+
+@media (min-width: 640px) {
+  .matches-hero {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .matches-hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px 40px;
+  }
+
+  .matches-hero-filters {
+    display: flex;
+    flex-wrap: wrap;
+    width: auto;
+    gap: 12px;
+  }
+
+  .matches-hero-filter-btn {
+    min-width: 140px !important;
+    width: auto;
+    min-height: 52px;
+    border-radius: 18px !important;
+    padding: 12px 20px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .matches-hero-filter-btn {
+    min-height: 56px;
+    min-width: 176px !important;
+    border-radius: 20px !important;
+    font-size: 1.05rem !important;
+  }
+}

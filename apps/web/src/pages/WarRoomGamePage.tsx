@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "../components/layout/Navbar";
 import { Auth } from "../context/AuthContext";
 import { WarRoomAgendaPickPhase, WarRoomAgendaWaitPhase } from "../components/warRoom/WarRoomAgendaPhases";
 import { WarRoomLobbyPhase } from "../components/warRoom/WarRoomLobbyPhase";
@@ -686,82 +685,126 @@ export default function WarRoomGamePage() {
 
   // ── Shared banner ─────────────────────────────────────────────────────────
   const bannerCompact = match?.status === "PLAYING";
+  const youPlayerLabel = match
+    ? warRoomPlayerLabel(
+        match.players.find((p) => p.seat === match.you.seat) ?? {
+          seat: match.you.seat,
+          username: null,
+        },
+        match.you.seat,
+      )
+    : "";
+  const warRoomMainClass =
+    "page-main max-w-full overflow-x-hidden lg:mx-auto lg:max-w-[1400px] lg:px-6 lg:pb-6";
+
   const banner = match && (
     <section
-      className={`flex flex-wrap items-center justify-between gap-3 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)] ${
-        bannerCompact ? "mb-2.5 shrink-0 px-6 py-4" : "mb-6 px-10 py-8"
+      className={`w-full min-w-0 overflow-hidden rounded-2xl bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)] sm:rounded-[28px] ${
+        bannerCompact
+          ? "mb-2.5 shrink-0 px-3 py-2.5 sm:px-6 sm:py-4"
+          : "mb-6 px-5 py-5 sm:px-10 sm:py-8"
       }`}
     >
       {bannerCompact ? (
         <>
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1">
-            <h1 className="m-0 text-2xl font-black leading-tight sm:text-3xl">
-              TITANS WAR ROOM
-            </h1>
-            <p className="text-base opacity-90">
-              Code{" "}
-              <span className="font-mono text-lg font-bold tracking-widest">
-                {match.inviteCode}
-              </span>
-            </p>
+          <div className="flex min-w-0 flex-col gap-2 sm:hidden">
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="m-0 text-base font-black leading-tight tracking-tight">
+                TITANS WAR ROOM
+              </h1>
+              <p className="shrink-0 pt-0.5 text-right text-[11px] leading-tight opacity-90">
+                Code{" "}
+                <span className="font-mono text-sm font-bold tracking-wide">
+                  {match.inviteCode}
+                </span>
+              </p>
+            </div>
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="shrink-0 text-sm font-black">
+                Round {match.currentRound} / {MAX_ROUNDS}
+              </p>
+              <p
+                className="min-w-0 flex-1 truncate text-xs opacity-90"
+                title={youPlayerLabel}
+              >
+                {youPlayerLabel}
+              </p>
+              <button
+                type="button"
+                onClick={() => { setPendingNavHref("/offseason"); setShowNavConfirm(true); }}
+                className="shrink-0 rounded-lg border border-white/40 bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-white/20"
+              >
+                Leave
+              </button>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 sm:gap-5">
-            <p className="text-lg font-black sm:text-xl">
-              Round {match.currentRound} / {MAX_ROUNDS}
-            </p>
-            <p className="text-base opacity-90">
-              {warRoomPlayerLabel(
-                match.players.find((p) => p.seat === match.you.seat) ?? {
-                  seat: match.you.seat,
-                  username: null,
-                },
-                match.you.seat,
-              )}
-            </p>
-            <button
-              type="button"
-              onClick={() => { setPendingNavHref("/offseason"); setShowNavConfirm(true); }}
-              className="rounded-lg border border-white/40 bg-white/10 px-5 py-2.5 text-base font-bold text-white hover:bg-white/20 transition-colors"
-            >
-              Leave
-            </button>
+
+          <div className="hidden min-w-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1">
+              <h1 className="m-0 text-2xl font-black leading-tight lg:text-3xl">
+                TITANS WAR ROOM
+              </h1>
+              <p className="text-sm opacity-90 lg:text-base">
+                Code{" "}
+                <span className="font-mono text-base font-bold tracking-widest lg:text-lg">
+                  {match.inviteCode}
+                </span>
+              </p>
+            </div>
+            <div className="flex min-w-0 shrink-0 items-center gap-4 lg:gap-5">
+              <p className="text-lg font-black lg:text-xl">
+                Round {match.currentRound} / {MAX_ROUNDS}
+              </p>
+              <p
+                className="max-w-[14rem] truncate text-sm opacity-90 lg:max-w-[16rem] lg:text-base"
+                title={youPlayerLabel}
+              >
+                {youPlayerLabel}
+              </p>
+              <button
+                type="button"
+                onClick={() => { setPendingNavHref("/offseason"); setShowNavConfirm(true); }}
+                className="rounded-lg border border-white/40 bg-white/10 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/20 lg:text-base"
+              >
+                Leave
+              </button>
+            </div>
           </div>
         </>
       ) : (
-        <>
-          <div>
-            <h1 className="m-0 text-4xl font-black">TITANS WAR ROOM</h1>
-            <p className="mt-1 text-sm opacity-70">
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="m-0 text-2xl font-black leading-tight sm:text-4xl">
+              TITANS WAR ROOM
+            </h1>
+            <p className="mt-1 text-sm opacity-80">
               Invite code:{" "}
-              <span className="font-mono font-bold tracking-widest text-base">
+              <span className="font-mono text-base font-bold tracking-widest">
                 {match.inviteCode}
               </span>
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:items-end">
             {match.status === "PLAYING" && (
-              <p className="text-xl font-black">
+              <p className="text-lg font-black sm:text-xl">
                 Round {match.currentRound} / {MAX_ROUNDS}
               </p>
             )}
-            <p className="text-sm opacity-70">
-              {warRoomPlayerLabel(
-                match.players.find((p) => p.seat === match.you.seat) ?? {
-                  seat: match.you.seat,
-                  username: null,
-                },
-                match.you.seat,
-              )}
+            <p
+              className="max-w-full truncate text-sm opacity-80 sm:max-w-[16rem]"
+              title={youPlayerLabel}
+            >
+              {youPlayerLabel}
             </p>
             <button
               type="button"
               onClick={() => { setPendingNavHref("/offseason"); setShowNavConfirm(true); }}
-              className="mt-1 rounded-lg border border-white/40 bg-white/10 px-4 py-2 text-sm font-bold text-white hover:bg-white/20 transition-colors"
+              className="w-full rounded-lg border border-white/40 bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/20 sm:w-auto"
             >
               Leave War Room
             </button>
           </div>
-        </>
+        </div>
       )}
     </section>
   );
@@ -796,9 +839,8 @@ export default function WarRoomGamePage() {
 
   if (phase === "lobby_wait") {
     return (
-      <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="mx-auto w-full max-w-[1400px] p-6">
-          <Navbar />
+      <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
+        <main className={warRoomMainClass}>
           {banner}
           <WarRoomLobbyPhase
             match={match}
@@ -821,8 +863,7 @@ export default function WarRoomGamePage() {
   if (phase === "agenda_pick") {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="mx-auto w-full max-w-[1400px] p-6">
-          <Navbar />
+        <main className={warRoomMainClass}>
           {banner}
           <WarRoomAgendaPickPhase
             agendas={agendas}
@@ -840,9 +881,8 @@ export default function WarRoomGamePage() {
 
   if (phase === "agenda_wait") {
     return (
-      <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="mx-auto w-full max-w-[1400px] p-6">
-          <Navbar />
+      <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
+        <main className={warRoomMainClass}>
           {banner}
           <WarRoomAgendaWaitPhase match={match} />
         </main>
@@ -854,8 +894,7 @@ export default function WarRoomGamePage() {
   if (phase === "ended") {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="mx-auto w-full max-w-[1400px] p-6">
-          <Navbar />
+        <main className={warRoomMainClass}>
           {banner}
           {!results ? (
             <div className="rounded-2xl bg-white p-10 shadow text-center">
@@ -877,18 +916,15 @@ export default function WarRoomGamePage() {
   const rivalSeats = match.players.map((p) => p.seat).filter((s) => s !== match.you.seat);
 
   return (
-    <div className="h-screen overflow-hidden bg-[#F4F5F7]">
-      <main className="mx-auto flex h-full max-w-[1400px] flex-col overflow-hidden p-3">
-        <div className="shrink-0">
-          <Navbar />
-        </div>
+    <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
+      <main className={`${warRoomMainClass} flex min-h-screen flex-col !pb-3`}>
         {banner}
         {statusToast && (
           <p className="mb-2 shrink-0 rounded-xl bg-[#0f3d78] px-4 py-2 text-center text-sm font-bold text-white">
             {statusToast}
           </p>
         )}
-        <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-6 [-webkit-overflow-scrolling:touch]">
         <WarRoomPlayingPhase
           match={match}
           hand={hand}

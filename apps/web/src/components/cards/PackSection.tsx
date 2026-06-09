@@ -1,4 +1,5 @@
 import { Card, Button } from "@heroui/react";
+import EnvelopeVisual from "./EnvelopeVisual";
 import type { PackOpeningState } from "../../types";
 
 interface PackSectionProps {
@@ -8,6 +9,16 @@ interface PackSectionProps {
   secondsRemaining: number | null;
   onStartOpening: () => void;
   onClaim: () => void;
+}
+
+const DEFAULT_PACKS_TOTAL = 12;
+const PACK_OPENING_BASE_SECONDS = 10;
+const PACK_OPENING_MULTIPLIER = 2;
+
+function getNextPackOpeningSeconds(packsRemaining: number): number {
+  const packNumber = DEFAULT_PACKS_TOTAL + 1 - packsRemaining;
+  const n = Math.max(1, Math.min(packNumber, DEFAULT_PACKS_TOTAL));
+  return PACK_OPENING_BASE_SECONDS * Math.pow(PACK_OPENING_MULTIPLIER, n - 1);
 }
 
 function formatCountdown(totalSeconds: number): string {
@@ -21,48 +32,7 @@ function formatCountdown(totalSeconds: number): string {
 }
 
 function EnvelopePreview() {
-  return (
-    <div className="[perspective:1100px] shrink-0">
-      <div className="relative h-48 w-40" style={{ transformStyle: "preserve-3d" }}>
-        {/* Soft inner glow */}
-        <div
-          className="absolute inset-[10%] top-[24%] rounded-md bg-gradient-to-b from-amber-400/15 via-[#4B90CD]/15 to-transparent opacity-80"
-          aria-hidden
-        />
-
-        {/* Body */}
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-[#1a2a42] to-[#0f1b2d] shadow-[0_18px_45px_rgba(0,0,0,0.45)] ring-1 ring-white/10" />
-
-        {/* Pocket */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[58%] rounded-b-lg bg-gradient-to-b from-[#243652] to-[#152238] shadow-inner"
-          style={{
-            clipPath: "polygon(0 12%, 50% 0, 100% 12%, 100% 100%, 0 100%)",
-          }}
-          aria-hidden
-        />
-
-        {/* Seal */}
-        <div
-          className="absolute left-1/2 top-[42%] z-20 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gradient-to-br from-[#8b2942] to-[#5c1528] shadow-lg ring-2 ring-[#c94d6a]/50"
-          aria-hidden
-        >
-          <span className="text-base font-black text-[#f5d0a8]">TC</span>
-        </div>
-
-        {/* Flap (closed) */}
-        <div className="absolute left-0 right-0 top-0 h-[48%] origin-top">
-          <div
-            className="h-full w-full bg-gradient-to-br from-[#3d5270] to-[#2a3d56] shadow-md ring-1 ring-white/5 [backface-visibility:hidden]"
-            style={{
-              clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-              WebkitBackfaceVisibility: "hidden",
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
+  return <EnvelopeVisual variant="preview" className="shrink-0" />;
 }
 
 export default function PackSection({
@@ -79,57 +49,58 @@ export default function PackSection({
   const isCountingDown = status === "OPENING";
   const countdown = secondsRemaining != null ? formatCountdown(secondsRemaining) : null;
 
+  const nextOpeningSeconds = getNextPackOpeningSeconds(packsRemaining);
+
   const buttonLabel = canClaim
     ? "Open now"
     : isCountingDown
       ? `Opening… ${countdown ?? ""}`.trim()
       : isOpening
         ? "Starting…"
-        : "Start opening (10s)";
+        : `Start opening (${formatCountdown(nextOpeningSeconds)})`;
 
   return (
-    <div className="bg-gradient-to-b from-[#0f1b2d] to-[#1a2d47] rounded-2xl p-8 mt-10">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-white text-2xl font-bold">Digital Card Packs</h2>
-          <p className="text-gray-400 text-sm mt-1">
-            Start opening a pack, wait 24 hours, then claim your cards
+    <div className="mt-8 rounded-2xl bg-gradient-to-b from-[#0f1b2d] to-[#1a2d47] p-4 sm:mt-10 sm:p-6 lg:mt-10 lg:p-8">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between sm:gap-4 lg:mb-6 lg:items-center">
+        <div className="min-w-0">
+          <h2 className="text-xl font-bold text-white sm:text-2xl lg:text-2xl">Digital Card Packs</h2>
+          <p className="mt-1 text-xs text-gray-400 sm:text-sm lg:mt-1 lg:text-sm">
+            Each pack takes longer to open — wait time doubles with every pack you start
           </p>
         </div>
-        <span className="rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white">
+        <span className="w-fit shrink-0 rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white sm:px-4 sm:py-2 sm:text-sm lg:px-4 lg:py-2 lg:text-sm">
           {packsRemaining} Packs Left
         </span>
       </div>
 
-      <Card className="bg-[#1a2d47] border border-gray-600">
-        <Card.Content className="flex flex-row items-center gap-8 p-6">
-          {/* Pack visual */}
+      <Card className="border border-gray-600 bg-[#1a2d47]">
+        <Card.Content className="flex flex-col items-center gap-5 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-6 lg:flex-row lg:gap-8 lg:p-6">
           <EnvelopePreview />
 
-          {/* Pack contents */}
-          <div className="flex-1">
-            <h3 className="text-white font-bold text-lg mb-3">Pack Contents</h3>
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2 text-gray-300 text-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+          <div className="w-full min-w-0 flex-1 text-center sm:text-left lg:text-left">
+            <h3 className="mb-2 text-base font-bold text-white sm:mb-3 sm:text-lg lg:mb-3 lg:text-lg">
+              Pack Contents
+            </h3>
+            <ul className="space-y-1.5 sm:space-y-2 lg:space-y-2">
+              <li className="flex items-center justify-center gap-2 text-xs text-gray-300 sm:justify-start sm:text-sm lg:justify-start lg:text-sm">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
                 3 Guaranteed Common Cards
               </li>
-              <li className="flex items-center gap-2 text-gray-300 text-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+              <li className="flex items-center justify-center gap-2 text-xs text-gray-300 sm:justify-start sm:text-sm lg:justify-start lg:text-sm">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
                 1 Rare or Elite Card
               </li>
-              <li className="flex items-center gap-2 text-gray-300 text-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+              <li className="flex items-center justify-center gap-2 text-xs text-gray-300 sm:justify-start sm:text-sm lg:justify-start lg:text-sm">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-400" />
                 Chance for Titan Rarity
               </li>
             </ul>
           </div>
 
-          {/* Open button */}
-          <div className="shrink-0">
+          <div className="w-full shrink-0 sm:w-auto lg:w-auto">
             <Button
               size="lg"
-              className="bg-white text-[#0f1b2d] font-bold px-10 hover:bg-gray-100"
+              className="w-full bg-white px-6 font-bold text-[#0f1b2d] hover:bg-gray-100 sm:w-auto sm:px-10 lg:px-10"
               onPress={() => {
                 if (canClaim) onClaim();
                 else onStartOpening();

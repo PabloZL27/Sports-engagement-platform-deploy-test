@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from "react";
 import { useConversation } from "@11labs/react";
 import { useRive, useStateMachineInput } from "@rive-app/react-canvas";
 import { FiMessageCircle, FiTrash2, FiVolume2 } from "react-icons/fi";
-import Navbar from "../layout/Navbar";
 import MicButton from "./MicButton";
 import StatusIndicator from "./StatusIndicator";
 import TranscriptDisplay from "./TranscriptDisplay";
@@ -80,16 +79,14 @@ function VoiceAgent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F4F5F7] text-gray-900">
-      <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col p-6">
-        <Navbar />
-
-        <div className="flex min-h-0 flex-1 flex-row overflow-hidden rounded-2xl border border-gray-200 bg-[#EEF0F4]">
-          <div className="flex w-[42%] flex-col items-center justify-start gap-4 border-r border-gray-200 bg-[#EEF0F4] px-6 pb-8 pt-14">
-            <h1 className="mb-6 text-4xl font-bold tracking-tight text-[#0C2340]">
+      <main className="page-main flex flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-[#EEF0F4] lg:flex-row">
+          <div className="flex w-full flex-col items-center justify-start gap-4 border-b border-gray-200 bg-[#EEF0F4] px-4 pb-6 pt-8 sm:px-6 sm:pb-8 sm:pt-10 lg:w-[42%] lg:border-b-0 lg:border-r lg:pt-14">
+            <h1 className="mb-2 text-2xl font-bold tracking-tight text-[#0C2340] sm:mb-4 sm:text-3xl lg:mb-6 lg:text-4xl">
               TitanBot
             </h1>
 
-            <div className="relative flex h-[280px] w-[280px] items-center justify-center rounded-full border border-gray-200 bg-white">
+            <div className="relative flex h-[200px] w-[200px] items-center justify-center rounded-full border border-gray-200 bg-white sm:h-[240px] sm:w-[240px] lg:h-[280px] lg:w-[280px]">
               {currentStatus === "speaking" && (
                 <>
                   <span
@@ -105,7 +102,8 @@ function VoiceAgent() {
               <div className="absolute inset-0 overflow-hidden rounded-full">
                 <div className="flex h-full w-full items-center justify-center">
                   <RiveComponent
-                    style={{ width: 280, height: 280, transform: "scale(1.45)" }}
+                    className="h-full w-full"
+                    style={{ transform: "scale(1.45)" }}
                   />
                 </div>
               </div>

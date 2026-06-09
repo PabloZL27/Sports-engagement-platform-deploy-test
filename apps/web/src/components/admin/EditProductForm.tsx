@@ -192,7 +192,7 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
   const basePriceNum = parseFloat(basePrice) || 0;
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 p-3 sm:space-y-6 sm:p-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
@@ -209,8 +209,8 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
       </div>
 
       {/* ── Basic Information ── */}
-      <section className="border border-gray-100 rounded-2xl p-5 space-y-4">
-        <h4 className="font-bold text-gray-700 text-sm">Basic Information</h4>
+      <section className="space-y-3 rounded-2xl border border-gray-100 p-3 sm:space-y-4 sm:p-5">
+        <h4 className="text-sm font-bold text-gray-700">Basic Information</h4>
 
         {/* Name */}
         <div>
@@ -226,7 +226,7 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
         </div>
 
         {/* Category (read-only) + Rarity */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Category</label>
             <input
@@ -253,7 +253,7 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
         </div>
 
         {/* Base Price + Status */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">
               Base Price <span className="text-red-500">*</span>
@@ -285,11 +285,11 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
       </section>
 
       {/* ── Product Image ── */}
-      <section className="border border-gray-100 rounded-2xl p-5">
-        <h4 className="font-bold text-gray-700 text-sm mb-4">Product Image</h4>
+      <section className="rounded-2xl border border-gray-100 p-3 sm:p-5">
+        <h4 className="mb-3 text-sm font-bold text-gray-700 sm:mb-4">Product Image</h4>
         <div
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition ${
+          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 transition sm:gap-3 sm:p-8 ${
             imageError
               ? "border-red-300 bg-red-50 hover:border-red-400"
               : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
@@ -335,11 +335,88 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
 
       {/* ── Variants (clothing / footwear) ── */}
       {product.product_type !== "no_size" && (
-        <section className="border border-gray-100 rounded-2xl p-5 space-y-4">
-          <h4 className="font-bold text-gray-700 text-sm">Stock by Size</h4>
+        <section className="space-y-3 rounded-2xl border border-gray-100 p-3 sm:space-y-4 sm:p-5">
+          <h4 className="text-sm font-bold text-gray-700">Stock by Size</h4>
 
-          {/* Tabla de variantes existentes y nuevas */}
           {variants.length > 0 && (
+            <>
+              <div className="space-y-2.5 md:hidden">
+                {variants.map((v, i) => (
+                  <div
+                    key={v.priceId || v.size}
+                    className={`rounded-xl border border-gray-100 p-3 ${!v.priceId ? "bg-blue-50/40" : "bg-gray-50"}`}
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-bold text-gray-800">Size {v.size ?? "—"}</span>
+                        {!v.priceId && (
+                          <span className="ml-2 text-[10px] font-medium text-blue-500">new</span>
+                        )}
+                      </div>
+                      {!v.priceId && (
+                        <button
+                          type="button"
+                          onClick={() => removeNewVariant(i)}
+                          className="text-red-400 transition hover:text-red-600"
+                          aria-label={`Remove size ${v.size}`}
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                          Stock
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={v.inventory_count}
+                          onChange={(e) => updateVariant(i, "inventory_count", e.target.value)}
+                          className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm outline-none transition focus:border-blue-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                          Current price
+                        </label>
+                        <p className="rounded-lg border border-gray-100 bg-white px-2.5 py-1.5 text-sm text-gray-500">
+                          {v.unit_amount ? `$${(v.unit_amount / 100).toFixed(2)}` : "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                          Price override
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Base price"
+                          value={v.priceOverride}
+                          onChange={(e) => updateVariant(i, "priceOverride", e.target.value)}
+                          className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm outline-none transition focus:border-blue-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                          SKU
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Optional"
+                          value={v.sku}
+                          onChange={(e) => updateVariant(i, "sku", e.target.value)}
+                          className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm outline-none transition focus:border-blue-400"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
@@ -407,9 +484,11 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
                 ))}
               </tbody>
             </table>
+              </div>
+            </>
           )}
 
-          <div className="bg-blue-50 rounded-xl px-4 py-3 text-xs text-blue-700">
+          <div className="rounded-xl bg-blue-50 px-3 py-2.5 text-[11px] text-blue-700 sm:px-4 sm:py-3 sm:text-xs">
             <span className="font-bold">Base Price:</span> ${basePriceNum.toFixed(2)} — Leave Price Override empty to keep the current price per size.
           </div>
 
@@ -417,13 +496,13 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
           {availableToAdd.length > 0 && (
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <p className="text-xs font-bold text-gray-600">Add New Sizes</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {availableToAdd.map((size) => (
                   <button
                     key={size}
                     type="button"
                     onClick={() => toggleNewSize(size)}
-                    className={`w-12 h-10 rounded-xl text-sm font-semibold border transition ${
+                    className={`h-9 min-w-[2.5rem] rounded-xl border px-2 text-xs font-semibold transition sm:h-10 sm:w-12 sm:text-sm ${
                       newSelectedSizes.includes(size)
                         ? "bg-blue-600 text-white border-blue-600"
                         : "bg-white text-gray-600 border-gray-200 hover:border-blue-300"
@@ -490,18 +569,18 @@ export default function EditProductForm({ product, onSuccess, onCancel }: Props)
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-3 pt-2">
+      <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:gap-3 sm:pt-2">
         <button
           type="submit"
           disabled={submitting}
-          className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="w-full rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-6 sm:py-3"
         >
           {submitting ? "Saving..." : "Save Changes"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition"
+          className="w-full rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 sm:w-auto sm:px-6 sm:py-3"
         >
           Cancel
         </button>

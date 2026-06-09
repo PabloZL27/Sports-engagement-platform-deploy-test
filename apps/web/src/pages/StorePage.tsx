@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { getProducts } from '../services/storeService';
 import type { StoreProduct } from '../types';
-import Navbar from '../components/layout/Navbar';
 import ProductCard from '../components/store/ProductCard';
 import FilterBar from '../components/store/FilterBar';
 import RarityDropdown from '../components/store/RarityDropdown';
@@ -86,11 +85,7 @@ export default function StorePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <div className="mx-auto w-full max-w-[1400px] px-6 pt-4">
-          <Navbar />
-        </div>
-        
-        <main className="mx-auto w-full max-w-[1400px] px-6 pt-6">
+        <main className="page-main">
           <p className="text-gray-600">Loading products…</p>
         </main>
       </div>
@@ -99,8 +94,7 @@ export default function StorePage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
-        <Navbar />
+      <main className="page-main">
         <section
           className="store-hero-bar mb-8"
           aria-label="Store"
@@ -137,7 +131,7 @@ export default function StorePage() {
               <CartButton />
             </div>
 
-            <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-6 lg:grid-cols-3">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

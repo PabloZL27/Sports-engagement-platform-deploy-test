@@ -79,8 +79,8 @@ const TopContributors = () => {
 
     return(
         <>
-            <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-              <h3 className="mb-3 pl-1 text-lg uppercase font-semibold tracking-[0.08em] text-[#0B2A55]">
+            <section className="w-full min-w-0 rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-6">
+              <h3 className="mb-3 pl-1 text-base font-semibold uppercase tracking-[0.08em] text-[#0B2A55] sm:text-lg">
                 Top Contributors
               </h3>
               <ol className="space-y-2 text-sm text-[#334155]">
@@ -89,10 +89,10 @@ const TopContributors = () => {
                   const isFirst = rank === 1;
 
                   return (
-                    <li key={fan.userId} className="flex items-center gap-4">
+                    <li key={fan.userId} className="flex min-w-0 items-center gap-3 sm:gap-4">
                       <span
                         className={[
-                          "flex h-11 w-11 items-center justify-center rounded-full font-bold",
+                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold sm:h-11 sm:w-11",
                           isFirst
                             ? "bg-[#4E8FD6] text-white"
                             : "bg-[#E5E7EB] text-[#0B2A55]",
@@ -101,9 +101,9 @@ const TopContributors = () => {
                         {rank}
                       </span>
 
-                      <div className="leading-tight">
-                        <p className="text-lg font-semibold text-[#0B2A55]">{fan.name}</p>
-                        <p className="text-sm text-[#9AA4B2]">{fan.postCount} posts</p>
+                      <div className="min-w-0 leading-tight">
+                        <p className="truncate text-base font-semibold text-[#0B2A55] sm:text-lg">{fan.name}</p>
+                        <p className="text-xs text-[#9AA4B2] sm:text-sm">{fan.postCount} posts</p>
                       </div>
                     </li>
                   );

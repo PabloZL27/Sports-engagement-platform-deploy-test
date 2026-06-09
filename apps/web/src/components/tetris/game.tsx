@@ -11,6 +11,8 @@ import { PrintPlayerInMap } from "../../utils/Utils";
 
 const STAGE_HEIGHT = 18;
 const STAGE_WIDTH = 10;
+const TITANS_LOGO_SRC = "/team-logos/TEN.png";
+const TITANS_LIGHT_BLUE = "#74d9ff";
 
 const initialMap = [...new Array(STAGE_HEIGHT)].map(() =>
 	[...new Array(STAGE_WIDTH)].map(() => ({ fill: 0, color: [] }))
@@ -68,7 +70,11 @@ const T = {
 		[0, 0, 0],
 		[1, 1, 1],
 		[0, 1, 0]
-	]
+	],
+	specialTitans: true,
+	color: TITANS_LIGHT_BLUE,
+	logoCell: [1, 1],
+	logoSrc: TITANS_LOGO_SRC,
 };
 
 const J = {
@@ -106,7 +112,8 @@ const Z = {
 const getRandomBloco = () => {
 	const blocos = [I, O, T, J, L, S, Z];
 	const bloco = blocos[Math.floor(Math.random() * blocos.length)];
-	bloco.color = colors[Math.floor(Math.random() * colors.length)];
+	if (bloco.specialTitans) bloco.color = TITANS_LIGHT_BLUE;
+	else bloco.color = colors[Math.floor(Math.random() * colors.length)];
 	return bloco;
 };
 const getRandomPlayer = player => {
@@ -136,8 +143,22 @@ const Game = ({ onGameOver }) => {
 	const [dragX, setDragX] = useState(0);
 	const [dragY, setDragY] = useState(0);
 	const [gameOver, setGameOver] = useState(false);
+	const [confettiBurst, setConfettiBurst] = useState(null);
 	const playStartedAtRef = React.useRef(Date.now());
 	const gameOverReportedRef = React.useRef(false);
+	const confettiTimerRef = React.useRef(null);
+
+	const triggerConfetti = React.useCallback(() => {
+		if (confettiTimerRef.current) {
+			clearTimeout(confettiTimerRef.current);
+		}
+
+		setConfettiBurst({ id: Date.now() });
+		confettiTimerRef.current = setTimeout(() => {
+			setConfettiBurst(null);
+			confettiTimerRef.current = null;
+		}, 1500);
+	}, []);
 
 	useEffect(() => {
 		const levelBaseScore = 1000;
@@ -149,6 +170,14 @@ const Game = ({ onGameOver }) => {
 		console.log("Remaining: ", nextLevelScore - score);
 		if (score >= nextLevelScore) setLevel(level + 1);
 	}, [level, score]);
+
+	useEffect(() => {
+		return () => {
+			if (confettiTimerRef.current) {
+				clearTimeout(confettiTimerRef.current);
+			}
+		};
+	}, []);
 
 	const restartGame = () => {
 		setMap(initialMap); //TODO: lose game
@@ -286,6 +315,10 @@ const Game = ({ onGameOver }) => {
 				if (clear) rowsClear.push(y);
 			});
 			if (rowsClear.length > 0) {
+				const clearedWithTitansPiece = rowsClear.some(y =>
+					map[y]?.some(pixel => pixel.fill === 1 && pixel.specialTitans)
+				);
+				if (clearedWithTitansPiece) triggerConfetti();
 				let newMap = map.slice();
 				rowsClear.forEach(y => {
 					for (let mapY = newMap.length - 1; mapY >= 0; mapY--)
@@ -300,12 +333,14 @@ const Game = ({ onGameOver }) => {
 				setlines(quant => quant + rowsClear.length);
 				const bonusLevel = 100 * (level * level);
 				const bonusRows = 40 * (rowsClear.length * rowsClear.length - 1);
-				setScore(score => score + 300 * rowsClear.length + bonusRows + bonusLevel);
+				const clearScore = 100 * rowsClear.length;
+				const titansBonus = clearedWithTitansPiece ? clearScore : 0;
+				setScore(score => score + clearScore + titansBonus + bonusRows + bonusLevel);
 				return newMap;
 			}
 			return map;
 		},
-		[level]
+		[level, triggerConfetti]
 	);
 
 	const validatePosition = React.useCallback(
@@ -410,6 +445,7 @@ const Game = ({ onGameOver }) => {
 			hint={hintPlayer}
 			paused={pause}
 			status={{ lines, score, level }}
+				confettiBurst={confettiBurst}
 			onBlur={() => setPause(true)}
 			onFocus={() => setPause(false)}
 			tabIndex="0"

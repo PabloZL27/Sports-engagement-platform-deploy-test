@@ -11,6 +11,35 @@ interface Props {
   onOpenTutorial: () => void;
 }
 
+function PlayerSlot({
+  label,
+  status,
+  joined,
+  ready,
+}: {
+  label: string;
+  status: string;
+  joined: boolean;
+  ready: boolean;
+}) {
+  return (
+    <div
+      className={`min-w-0 rounded-xl border-2 px-2 py-3 text-center sm:px-4 sm:py-4 ${
+        !joined
+          ? "border-dashed border-gray-300 bg-gray-50 text-gray-400"
+          : ready
+            ? "border-green-400 bg-green-50 text-green-700"
+            : "border-yellow-400 bg-yellow-50 text-yellow-700"
+      }`}
+    >
+      <p className="truncate text-xs font-bold sm:text-sm" title={label}>
+        {label}
+      </p>
+      <p className="mt-1 text-[10px] font-normal sm:text-xs">{status}</p>
+    </div>
+  );
+}
+
 export function WarRoomLobbyPhase({
   match,
   startLoading,
@@ -26,48 +55,39 @@ export function WarRoomLobbyPhase({
   const allReady = match.players.length >= 2 && match.players.every((p) => p.isReady);
 
   return (
-    <div className="rounded-2xl bg-white p-10 shadow text-center">
-      <p className="text-2xl font-black text-[#0B2A55] mb-2">War Room Lobby</p>
-      <p className="text-sm text-gray-500 mb-2">Share the invite code with your Game Managers</p>
-      <p className="mb-8 font-mono text-3xl font-black tracking-widest text-[#0f3d78]">
+    <div className="w-full min-w-0 rounded-2xl bg-white p-4 text-center shadow sm:p-8 lg:p-10">
+      <p className="mb-2 text-xl font-black text-[#0B2A55] sm:text-2xl">War Room Lobby</p>
+      <p className="mb-2 text-sm text-gray-500">Share the invite code with your Game Managers</p>
+      <p className="mb-6 font-mono text-2xl font-black tracking-widest text-[#0f3d78] sm:mb-8 sm:text-3xl">
         {match.inviteCode}
       </p>
 
-      {/* Player slots */}
-      <div className="mb-8 flex justify-center gap-4">
+      <div className="mb-6 grid grid-cols-3 gap-2 sm:mb-8 sm:gap-4">
         {[1, 2, 3].map((seat) => {
           const player = match.players.find((p) => p.seat === seat);
           const joined = !!player;
           const ready = player?.isReady ?? false;
+          const label = player
+            ? warRoomPlayerLabel(player, match.you.seat)
+            : warRoomSeatLabel(seat, match.players, match.you.seat);
+
           return (
-            <div
+            <PlayerSlot
               key={seat}
-              className={`rounded-xl border-2 px-6 py-4 text-sm font-bold transition-colors ${
-                !joined
-                  ? "border-dashed border-gray-300 bg-gray-50 text-gray-400"
-                  : ready
-                  ? "border-green-400 bg-green-50 text-green-700"
-                  : "border-yellow-400 bg-yellow-50 text-yellow-700"
-              }`}
-            >
-              {player
-                ? warRoomPlayerLabel(player, match.you.seat)
-                : warRoomSeatLabel(seat, match.players, match.you.seat)}
-              <br />
-              <span className="text-xs font-normal">
-                {!joined ? "Waiting..." : ready ? "Ready" : "Not ready"}
-              </span>
-            </div>
+              label={label}
+              joined={joined}
+              ready={ready}
+              status={!joined ? "Waiting..." : ready ? "Ready" : "Not ready"}
+            />
           );
         })}
       </div>
 
-      {/* Tutorial + Ready buttons */}
-      <div className="flex flex-col sm:flex-row justify-center gap-3 mb-6">
+      <div className="mb-6 flex flex-col justify-center gap-3 sm:flex-row">
         <button
           type="button"
           onClick={onOpenTutorial}
-          className="rounded-xl border-2 border-[#0f3d78] px-6 py-3 text-sm font-bold text-[#0f3d78] hover:bg-[#0f3d78]/5 transition-colors"
+          className="rounded-xl border-2 border-[#0f3d78] px-5 py-3 text-sm font-bold text-[#0f3d78] transition-colors hover:bg-[#0f3d78]/5"
         >
           How to Play
         </button>
@@ -76,42 +96,41 @@ export function WarRoomLobbyPhase({
             type="button"
             disabled={readyLoading}
             onClick={onReady}
-            className="rounded-xl bg-green-600 px-6 py-3 text-sm font-bold text-white hover:bg-green-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-xl bg-green-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {readyLoading ? "Confirming..." : "I'm Ready"}
           </button>
         )}
         {iAmReady && (
-          <div className="rounded-xl border-2 border-green-400 bg-green-50 px-6 py-3 text-sm font-bold text-green-700">
+          <div className="rounded-xl border-2 border-green-400 bg-green-50 px-5 py-3 text-sm font-bold text-green-700">
             You are Ready
           </div>
         )}
       </div>
 
       {startError && (
-        <p className="mb-4 text-sm text-red-500 font-semibold">{startError}</p>
+        <p className="mb-4 text-sm font-semibold text-red-500">{startError}</p>
       )}
 
-      {/* Start button (host only) */}
       {isHost ? (
         <div>
           <button
             type="button"
             disabled={playerCount < 2 || !allReady || startLoading}
             onClick={onStart}
-            className="rounded-xl bg-[#0f3d78] px-10 py-3 font-bold text-white transition-colors hover:bg-[#0B2A55] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full max-w-xl rounded-xl bg-[#0f3d78] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#0B2A55] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-10 sm:text-base"
           >
             {startLoading
               ? "Starting..."
               : playerCount < 2
-              ? "Waiting for at least 1 more Game Manager..."
-              : !allReady
-              ? "Waiting for all Game Managers to be ready..."
-              : `Start Draft Night with ${playerCount} Game Manager${playerCount > 1 ? "s" : ""}`}
+                ? "Waiting for at least 1 more Game Manager..."
+                : !allReady
+                  ? "Waiting for all Game Managers to be ready..."
+                  : `Start Draft Night with ${playerCount} Game Manager${playerCount > 1 ? "s" : ""}`}
           </button>
           {playerCount >= 2 && !allReady && (
             <p className="mt-2 text-xs text-gray-400">
-              All Game Managers must click "I'm Ready" before you can start.
+              All Game Managers must click &quot;I&apos;m Ready&quot; before you can start.
             </p>
           )}
         </div>

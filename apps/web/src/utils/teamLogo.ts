@@ -1,6 +1,10 @@
 /** Rutas bajo `public/team-logos/`. Puedes usar .png y cambiar `LOGO_EXT`. */
 const LOGO_EXT = "svg";
 
+/** Primary mark from ESPN — same image Matches uses when `home_team_logo` is set. */
+export const TITANS_ESPN_LOGO_URL =
+  "https://a.espncdn.com/i/teamlogos/nfl/500/ten.png";
+
 /** `short_name` API: "TEN vs IND" → local vs visita. */
 export function parseAbbrsFromShortName(shortName: string | undefined): {
   home: string | null;

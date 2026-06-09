@@ -13,7 +13,6 @@ interface LockedCardProps {
 export default function LockedCard({ card }: LockedCardProps) {
   const {
     src: headshotSrc,
-    showPlaceholder,
     onImgError,
     onImgLoad,
     loaded,
@@ -21,7 +20,7 @@ export default function LockedCard({ card }: LockedCardProps) {
   } = useRosterHeadshotSrc(card);
 
   return (
-    <article className="relative mx-auto w-full max-w-sm">
+    <article className="relative w-full min-w-0">
       {/* Misma caja 3:4 que PlayerCard: retrato + barra dentro del aspect-ratio */}
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-[#0f1b2d] shadow-lg ring-2 ring-inset ring-gray-600">
         <div className="absolute inset-0 flex flex-col bg-gradient-to-b from-gray-800 to-gray-900">
@@ -42,14 +41,6 @@ export default function LockedCard({ card }: LockedCardProps) {
                 className={`absolute inset-0 z-[1] h-full w-full object-cover object-top [transform:translate3d(0,0,0.02px)] [backface-visibility:hidden] brightness-[0.28] grayscale ${RARITY_HEADSHOT_IMAGE_OPACITY[card.rarity]} ${loaded ? "opacity-100" : "opacity-0"}`}
                 style={{ WebkitBackfaceVisibility: "hidden" }}
               />
-            ) : null}
-
-            {showPlaceholder || !loaded ? (
-              <div className="absolute inset-0 z-[1] flex items-center justify-center bg-black/25" aria-hidden>
-                <span className="text-5xl font-bold text-white/20">
-                  {card.display_name.charAt(0)}
-                </span>
-              </div>
             ) : null}
 
             <div className="absolute inset-0 z-[2] flex flex-col items-center justify-center bg-black/40">
